@@ -16,11 +16,15 @@ type MoneyRange struct {
 	currency string
 }
 
+// NewMoneyRange returns a new range. If start is greater than stop or start and stop have different
+// currencies, return nil and not nil error
 func NewMoneyRange(start, stop *Money) (*MoneyRange, error) {
-	if err := start.sameKind(stop); err != nil {
+	ok, err := stop.LessThan(start) // checking for same currency included
+	if err != nil {
 		return nil, err
 	}
-	if ok, _ := stop.LessThan(start); ok {
+
+	if ok {
 		return nil, ErrStopLessThanStart
 	}
 
@@ -40,18 +44,24 @@ func (m *MoneyRange) String() string {
 func (m *MoneyRange) Add(other interface{}) (*MoneyRange, error) {
 	switch v := other.(type) {
 	case *Money:
-		if m.currency != v.Currency {
-			return nil, ErrNotSameCurrency
+		start, err := m.Start.Add(v)
+		if err != nil {
+			return nil, err
 		}
-		start, _ := m.Start.Add(v) // already checked err above
-		stop, _ := m.Start.Add(v)  // already checked err above
+		stop, err := m.Stop.Add(v)
+		if err != nil {
+			return nil, err
+		}
 		return &MoneyRange{start, stop, m.currency}, nil
 	case *MoneyRange:
-		if v.Start.Currency != m.currency {
-			return nil, ErrNotSameCurrency
+		start, err := m.Start.Add(v.Start)
+		if err != nil {
+			return nil, err
 		}
-		start, _ := m.Start.Add(v.Start) // already checked err above
-		stop, _ := m.Stop.Add(v.Stop)    // already checked err above
+		stop, err := m.Stop.Add(v.Stop)
+		if err != nil {
+			return nil, err
+		}
 		return &MoneyRange{start, stop, m.currency}, nil
 	default:
 		return nil, ErrUnknownType
@@ -62,18 +72,24 @@ func (m *MoneyRange) Add(other interface{}) (*MoneyRange, error) {
 func (m *MoneyRange) Sub(other interface{}) (*MoneyRange, error) {
 	switch v := other.(type) {
 	case *Money:
-		if m.currency != v.Currency {
-			return nil, ErrNotSameCurrency
+		start, err := m.Start.Sub(v)
+		if err != nil {
+			return nil, err
 		}
-		start, _ := m.Start.Sub(v) // already checked err above
-		stop, _ := m.Start.Sub(v)  // already checked err above
+		stop, err := m.Stop.Sub(v)
+		if err != nil {
+			return nil, err
+		}
 		return &MoneyRange{start, stop, m.currency}, nil
 	case *MoneyRange:
-		if v.Start.Currency != m.currency {
-			return nil, ErrNotSameCurrency
+		start, err := m.Start.Sub(v.Start)
+		if err != nil {
+			return nil, err
 		}
-		start, _ := m.Start.Sub(v.Start) // already checked err above
-		stop, _ := m.Stop.Sub(v.Stop)    // already checked err above
+		stop, err := m.Stop.Sub(v.Stop)
+		if err != nil {
+			return nil, err
+		}
 		return &MoneyRange{start, stop, m.currency}, nil
 	default:
 		return nil, ErrUnknownType
@@ -82,21 +98,27 @@ func (m *MoneyRange) Sub(other interface{}) (*MoneyRange, error) {
 
 // Equal Checks if two MoneyRange are equal
 func (m *MoneyRange) Equal(other *MoneyRange) bool {
-	if m.currency != other.currency {
+	b1, err := m.Start.Equal(other.Start)
+	if err != nil {
 		return false
 	}
-	b1, _ := m.Start.Equal(other.Start) // already checked err above
-	b2, _ := m.Stop.Equal(other.Stop)   // already checked err above
+	b2, err := m.Stop.Equal(other.Stop)
+	if err != nil {
+		return false
+	}
 	return b1 && b2
 }
 
 // Contains check if a Money is between this MoneyRange's two ends
 func (m *MoneyRange) Contains(item *Money) bool {
-	if m.currency != item.Currency {
+	itemGreaterThanStart, err := m.Start.LessThan(item)
+	if err != nil {
 		return false
 	}
-	itemGreaterThanStart, _ := m.Start.LessThan(item) // already checked err above
-	itemLessThanStop, _ := item.LessThan(m.Stop)      // already checked err above
+	itemLessThanStop, err := item.LessThan(m.Stop)
+	if err != nil {
+		return false
+	}
 	return itemGreaterThanStart && itemLessThanStop
 }
 

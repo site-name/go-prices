@@ -58,6 +58,8 @@ func (m *Money) Equal(other *Money) (bool, error) {
 	return m.Amount.Equal(*other.Amount), nil
 }
 
+// Mul multiplty money with the givent other.
+// other must be a *Money, float64, float32, int64, int, int32
 func (m *Money) Mul(other interface{}) (*Money, error) {
 	switch t := other.(type) {
 	case *Money:
@@ -89,6 +91,8 @@ func (m *Money) Mul(other interface{}) (*Money, error) {
 	}
 }
 
+// Mul divide money with the givent other.
+// other must be a *Money, float64, float32, int64, int, int32
 func (m *Money) TrueDiv(other interface{}) (*Money, error) {
 	switch t := other.(type) {
 	case *Money:
@@ -123,20 +127,22 @@ func (m *Money) TrueDiv(other interface{}) (*Money, error) {
 	}
 }
 
+// Add adds two money amount together, returns new instance of money
 func (m *Money) Add(other *Money) (*Money, error) {
 	if err := m.sameKind(other); err != nil {
 		return nil, err
 	}
 	amount := m.Amount.Add(*other.Amount)
-	return NewMoney(&amount, m.Currency)
+	return &Money{&amount, m.Currency}, nil
 }
 
+// Sub reduce two money amount and returns new instance of money
 func (m *Money) Sub(other *Money) (*Money, error) {
 	if err := m.sameKind(other); err != nil {
 		return nil, err
 	}
 	amount := m.Amount.Sub(*other.Amount)
-	return NewMoney(&amount, m.Currency)
+	return &Money{&amount, m.Currency}, nil
 }
 
 func (m *Money) IsNotZero() bool {
