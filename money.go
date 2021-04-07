@@ -58,6 +58,19 @@ func (m *Money) Equal(other *Money) (bool, error) {
 	return m.Amount.Equal(*other.Amount), nil
 }
 
+// LessThanOrEqual check if this money is less than or equal to other
+func (m *Money) LessThanOrEqual(other *Money) (bool, error) {
+	less, err := m.LessThan(other)
+	if err != nil {
+		return false, err
+	}
+	eq, err := m.Equal(other)
+	if err != nil {
+		return false, err
+	}
+	return less || eq, nil
+}
+
 // Mul multiplty money with the givent other.
 // other must be a *Money, float64, float32, int64, int, int32
 func (m *Money) Mul(other interface{}) (*Money, error) {

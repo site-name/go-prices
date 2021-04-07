@@ -111,11 +111,11 @@ func (m *MoneyRange) Equal(other *MoneyRange) bool {
 
 // Contains check if a Money is between this MoneyRange's two ends
 func (m *MoneyRange) Contains(item *Money) bool {
-	itemGreaterThanStart, err := m.Start.LessThan(item)
+	itemGreaterThanStart, err := m.Start.LessThanOrEqual(item)
 	if err != nil {
 		return false
 	}
-	itemLessThanStop, err := item.LessThan(m.Stop)
+	itemLessThanStop, err := item.LessThanOrEqual(m.Stop)
 	if err != nil {
 		return false
 	}
@@ -127,5 +127,11 @@ func (m *MoneyRange) Contains(item *Money) bool {
 // }
 
 func (m *MoneyRange) Replace(start, stop *Money) (*MoneyRange, error) {
+	if start == nil {
+		start = m.Start
+	}
+	if stop == nil {
+		stop = m.Stop
+	}
 	return NewMoneyRange(start, stop)
 }
