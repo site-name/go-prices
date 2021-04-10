@@ -167,6 +167,8 @@ func (m *Money) IsNotZero() bool {
 // Otherwise the resulting exponent will be set to the correct exponent
 // of the currency if it's known and to default (two decimal places)
 // otherwise.
-// func (m *Money) Quantize() *Money {
-// 	m.Amount.QuoRem()
+// func (m *Money) Quantize(exp *decimal.Decimal) *Money {
+// 	if exp == nil {
+
+// 	}
 // }
