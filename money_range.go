@@ -122,9 +122,23 @@ func (m *MoneyRange) Contains(item *Money) bool {
 	return itemGreaterThanStart && itemLessThanStop
 }
 
-// func (m *MoneyRange) Quantise() {
-
-// }
+//Return a copy of the range with start and stop quantized.
+// All arguments are passed to `Money.quantize
+func (m *MoneyRange) Quantize() (*MoneyRange, error) {
+	start, err := m.Start.Quantize()
+	if err != nil {
+		return nil, err
+	}
+	stop, err := m.Stop.Quantize()
+	if err != nil {
+		return nil, err
+	}
+	return &MoneyRange{
+		Start:    start,
+		Stop:     stop,
+		Currency: m.Currency,
+	}, nil
+}
 
 func (m *MoneyRange) Replace(start, stop *Money) (*MoneyRange, error) {
 	if start == nil {
@@ -134,4 +148,17 @@ func (m *MoneyRange) Replace(start, stop *Money) (*MoneyRange, error) {
 		stop = m.Stop
 	}
 	return NewMoneyRange(start, stop)
+}
+
+// Apply a fixed discount to MoneyRange.
+func (m *MoneyRange) FixedDiscount(discount *Money) (*MoneyRange, error) {
+	baseStart, err := m.Start.FixedDiscount(discount)
+	if err != nil {
+		return nil, err
+	}
+	baseStop, err := m.Stop.FixedDiscount(discount)
+	if err != nil {
+		return nil, err
+	}
+	return NewMoneyRange(baseStart, baseStop)
 }

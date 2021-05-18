@@ -138,9 +138,24 @@ func (t *TaxedMoneyRange) Contains(item *TaxedMoney) (bool, error) {
 	return greaterThanStart && lessThanStop, nil
 }
 
-// func (t *TaxedMoneyRange) Quantize() *TaxedMoneyRange {
-
-// }
+// Return a copy of the range with start and stop quantized.
+// All arguments are passed to `TaxedMoney.quantize` which in turn calls
+// `Money.quantize
+func (t *TaxedMoneyRange) Quantize() (*TaxedMoneyRange, error) {
+	start, err := t.Start.Quantize()
+	if err != nil {
+		return nil, err
+	}
+	stop, err := t.Stop.Quantize()
+	if err != nil {
+		return nil, err
+	}
+	return &TaxedMoneyRange{
+		Start:    start,
+		Stop:     stop,
+		Currency: t.Currency,
+	}, nil
+}
 
 // Return a range with start or stop replaced with given values
 func (t *TaxedMoneyRange) Replace(start, stop *TaxedMoney) (*TaxedMoneyRange, error) {
@@ -152,4 +167,17 @@ func (t *TaxedMoneyRange) Replace(start, stop *TaxedMoney) (*TaxedMoneyRange, er
 	}
 
 	return NewTaxedMoneyRange(start, stop)
+}
+
+// Apply a fixed discount to TaxedMoneyRange.
+func (t *TaxedMoneyRange) FixedDiscount(discount *Money) (*TaxedMoneyRange, error) {
+	baseStart, err := t.Start.FixedDiscount(discount)
+	if err != nil {
+		return nil, err
+	}
+	baseStop, err := t.Stop.FixedDiscount(discount)
+	if err != nil {
+		return nil, err
+	}
+	return NewTaxedMoneyRange(baseStart, baseStop)
 }

@@ -134,13 +134,44 @@ func (m *Money) IsNotZero() bool {
 	return !m.Amount.IsZero()
 }
 
+// func (m *Money) FlatTax(taxRate *decimal.Decimal, kepGross bool) {
+// 	faction := decimal.NewFromInt(1).Add(*taxRate)
+// 	if kepGross {
+// 		// net :=
+// 	}
+// 	d := decimal.NewFromInt(12)
+// }
+
 // Return a copy of the object with its amount quantized.
 // If `exp` is given the resulting exponent will match that of `exp`.
 // Otherwise the resulting exponent will be set to the correct exponent
 // of the currency if it's known and to default (two decimal places)
 // otherwise.
-// func (m *Money) Quantize(exp *decimal.Decimal) *Money {
-// 	if exp == nil {
+func (m *Money) Quantize() (*Money, error) {
+	places, err := GetCurrencyPrecision(m.Currency)
+	if err != nil {
+		return nil, err
+	}
+	d := m.Amount.Round(int32(places))
+	return &Money{
+		Amount:   &d,
+		Currency: m.Currency,
+	}, nil
+}
 
-// 	}
-// }
+// Apply a fixed discount to Money type.
+func (m *Money) FixedDiscount(discount *Money) (*Money, error) {
+	sub, err := m.Sub(discount) // same currencies check included
+	if err != nil {
+		return nil, err
+	}
+
+	if sub.Amount.GreaterThan(decimal.Zero) {
+		return sub, nil
+	}
+
+	return &Money{
+		Currency: m.Currency,
+		Amount:   &decimal.Zero,
+	}, nil
+}

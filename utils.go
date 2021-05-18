@@ -1,6 +1,8 @@
 package goprices
 
 import (
+	"strings"
+
 	"golang.org/x/text/currency"
 )
 
@@ -22,4 +24,12 @@ func (m *Money) sameKind(other *Money) error {
 		return ErrNotSameCurrency
 	}
 	return nil
+}
+
+func GetCurrencyPrecision(currency string) (int, error) {
+	c, ok := currencies[strings.ToUpper(currency)]
+	if !ok {
+		return 0, ErrUnknownCurrency
+	}
+	return c.Fraction, nil
 }

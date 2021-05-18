@@ -132,6 +132,33 @@ func (t *TaxedMoney) Tax() (*Money, error) {
 	return t.Gross.Sub(t.Net)
 }
 
-// func (t *TaxedMoney) Quantize() (*TaxedMoney, error) {
-//
-// }
+// Return a new instance with both net and gross quantized.
+// All arguments are passed to `Money.quantize
+func (t *TaxedMoney) Quantize() (*TaxedMoney, error) {
+	net, err := t.Net.Quantize()
+	if err != nil {
+		return nil, err
+	}
+	gross, err := t.Gross.Quantize()
+	if err != nil {
+		return nil, err
+	}
+	return &TaxedMoney{
+		Net:      net,
+		Gross:    gross,
+		Currency: t.Currency,
+	}, nil
+}
+
+// Apply a fixed discount to TaxedMoney.
+func (t *TaxedMoney) FixedDiscount(discount *Money) (*TaxedMoney, error) {
+	baseNet, err := t.Net.FixedDiscount(discount)
+	if err != nil {
+		return nil, err
+	}
+	baseGross, err := t.Gross.FixedDiscount(discount)
+	if err != nil {
+		return nil, err
+	}
+	return NewTaxedMoney(baseNet, baseGross)
+}
