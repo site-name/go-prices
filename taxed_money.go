@@ -6,7 +6,7 @@ import "fmt"
 type TaxedMoney struct {
 	Net      *Money
 	Gross    *Money
-	currency string
+	Currency string
 }
 
 // NewTaxedMoney returns new TaxedMoney,
@@ -24,12 +24,12 @@ func (t *TaxedMoney) String() string {
 	return fmt.Sprintf("TaxedMoney{net=%q, gross=%q}", t.Net.String(), t.Gross.String())
 }
 
-// LessThan compare this to other TaxedMoney, return false and error if operants have different currencies
+// LessThan check if this money's gross is less than other's gross
 func (t *TaxedMoney) LessThan(other *TaxedMoney) (bool, error) {
 	return t.Gross.LessThan(other.Gross) // currency type check included
 }
 
-// Equal checks if two taxed money euqal both net and gross
+// Equal checks if two taxed money are equal both in net and gross
 func (t *TaxedMoney) Equal(other *TaxedMoney) (bool, error) {
 	eq1, err := t.Net.Equal(other.Net)
 	if err != nil {
@@ -43,7 +43,7 @@ func (t *TaxedMoney) Equal(other *TaxedMoney) (bool, error) {
 	return eq1 && eq2, nil
 }
 
-// LessThanOrEqual checks if two taxed money are less than or euqal each other
+// LessThanOrEqual checks if this money is less than or equal to other.
 func (t *TaxedMoney) LessThanOrEqual(other *TaxedMoney) (bool, error) {
 	less, err := t.LessThan(other)
 	if err != nil {
@@ -66,10 +66,11 @@ func (t *TaxedMoney) TrueDiv(other *TaxedMoney) (*TaxedMoney, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &TaxedMoney{net, gross, t.currency}, nil
+	return &TaxedMoney{net, gross, t.Currency}, nil
 }
 
-// Add adds two taxed money, or taxed money to a money.
+// Add adds a money or taxed money to this.
+// other must be either Money || TaxedMoney
 func (t *TaxedMoney) Add(other interface{}) (*TaxedMoney, error) {
 	switch v := other.(type) {
 	case *Money:
@@ -81,7 +82,7 @@ func (t *TaxedMoney) Add(other interface{}) (*TaxedMoney, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &TaxedMoney{net, gross, t.currency}, nil
+		return &TaxedMoney{net, gross, t.Currency}, nil
 	case *TaxedMoney:
 		net, err := t.Net.Add(v.Net)
 		if err != nil {
@@ -91,13 +92,14 @@ func (t *TaxedMoney) Add(other interface{}) (*TaxedMoney, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &TaxedMoney{net, gross, t.currency}, nil
+		return &TaxedMoney{net, gross, t.Currency}, nil
 	default:
 		return nil, ErrUnknownType
 	}
 }
 
-// Add substract two taxed money, or taxed money to a money.
+// Add substract this money to other.
+// other must be either Money || TaxedMoney.
 func (t *TaxedMoney) Sub(other interface{}) (*TaxedMoney, error) {
 	switch v := other.(type) {
 	case *Money:
@@ -109,7 +111,7 @@ func (t *TaxedMoney) Sub(other interface{}) (*TaxedMoney, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &TaxedMoney{net, gross, t.currency}, nil
+		return &TaxedMoney{net, gross, t.Currency}, nil
 	case *TaxedMoney:
 		net, err := t.Net.Sub(v.Net)
 		if err != nil {
@@ -119,12 +121,13 @@ func (t *TaxedMoney) Sub(other interface{}) (*TaxedMoney, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &TaxedMoney{net, gross, t.currency}, nil
+		return &TaxedMoney{net, gross, t.Currency}, nil
 	default:
 		return nil, ErrUnknownType
 	}
 }
 
+// Tax calculates taxed money by subtracting m's gross to m's net
 func (t *TaxedMoney) Tax() (*Money, error) {
 	return t.Gross.Sub(t.Net)
 }

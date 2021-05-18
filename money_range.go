@@ -13,7 +13,7 @@ var (
 type MoneyRange struct {
 	Start    *Money
 	Stop     *Money
-	currency string
+	Currency string
 }
 
 // NewMoneyRange returns a new range. If start is greater than stop or start and stop have different
@@ -31,7 +31,7 @@ func NewMoneyRange(start, stop *Money) (*MoneyRange, error) {
 	return &MoneyRange{
 		Start:    start,
 		Stop:     stop,
-		currency: start.Currency,
+		Currency: start.Currency,
 	}, nil
 }
 
@@ -52,7 +52,7 @@ func (m *MoneyRange) Add(other interface{}) (*MoneyRange, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &MoneyRange{start, stop, m.currency}, nil
+		return &MoneyRange{start, stop, m.Currency}, nil
 	case *MoneyRange:
 		start, err := m.Start.Add(v.Start)
 		if err != nil {
@@ -62,7 +62,7 @@ func (m *MoneyRange) Add(other interface{}) (*MoneyRange, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &MoneyRange{start, stop, m.currency}, nil
+		return &MoneyRange{start, stop, m.Currency}, nil
 	default:
 		return nil, ErrUnknownType
 	}
@@ -80,7 +80,7 @@ func (m *MoneyRange) Sub(other interface{}) (*MoneyRange, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &MoneyRange{start, stop, m.currency}, nil
+		return &MoneyRange{start, stop, m.Currency}, nil
 	case *MoneyRange:
 		start, err := m.Start.Sub(v.Start)
 		if err != nil {
@@ -90,7 +90,7 @@ func (m *MoneyRange) Sub(other interface{}) (*MoneyRange, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &MoneyRange{start, stop, m.currency}, nil
+		return &MoneyRange{start, stop, m.Currency}, nil
 	default:
 		return nil, ErrUnknownType
 	}

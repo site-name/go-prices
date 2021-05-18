@@ -1,19 +1,22 @@
 package goprices
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type TaxedMoneyRange struct {
 	Start    *TaxedMoney
 	Stop     *TaxedMoney
-	currency string
+	Currency string
 }
 
 // NewTaxedMoneyRange create new taxed money range.
 // It returns nil and error value if start > stop or they have different currencies
 func NewTaxedMoneyRange(start, stop *TaxedMoney) (*TaxedMoneyRange, error) {
-	if start.currency != stop.currency {
+	if start.Currency != stop.Currency {
 		return nil, ErrNotSameCurrency
 	}
+
 	less, err := stop.LessThan(start)
 	if err != nil {
 		return nil, err
@@ -23,7 +26,7 @@ func NewTaxedMoneyRange(start, stop *TaxedMoney) (*TaxedMoneyRange, error) {
 		return nil, ErrStopLessThanStart
 	}
 
-	return &TaxedMoneyRange{start, stop, start.currency}, nil
+	return &TaxedMoneyRange{start, stop, start.Currency}, nil
 }
 
 // String implements fmt.Stringer interface
@@ -31,7 +34,7 @@ func (t *TaxedMoneyRange) String() string {
 	return fmt.Sprintf("TaxedMoneyRange{%q, %q}", t.Start.String(), t.Stop.String())
 }
 
-// Add adds this taxed money range to a money, money range or taxed money range
+// Add adds this taxed money range to a money, MoneyRange or TaxedMoneyRange
 func (t *TaxedMoneyRange) Add(other interface{}) (*TaxedMoneyRange, error) {
 	switch v := other.(type) {
 	case *Money, *TaxedMoney:
@@ -43,7 +46,7 @@ func (t *TaxedMoneyRange) Add(other interface{}) (*TaxedMoneyRange, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &TaxedMoneyRange{start, stop, t.currency}, nil
+		return &TaxedMoneyRange{start, stop, t.Currency}, nil
 	case *MoneyRange:
 		start, err := t.Start.Add(v.Start)
 		if err != nil {
@@ -53,7 +56,7 @@ func (t *TaxedMoneyRange) Add(other interface{}) (*TaxedMoneyRange, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &TaxedMoneyRange{start, stop, t.currency}, nil
+		return &TaxedMoneyRange{start, stop, t.Currency}, nil
 	case *TaxedMoneyRange:
 		start, err := t.Start.Add(v.Start)
 		if err != nil {
@@ -63,7 +66,7 @@ func (t *TaxedMoneyRange) Add(other interface{}) (*TaxedMoneyRange, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &TaxedMoneyRange{start, stop, t.currency}, nil
+		return &TaxedMoneyRange{start, stop, t.Currency}, nil
 	default:
 		return nil, ErrUnknownType
 	}
@@ -81,7 +84,7 @@ func (t *TaxedMoneyRange) Sub(other interface{}) (*TaxedMoneyRange, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &TaxedMoneyRange{start, stop, t.currency}, nil
+		return &TaxedMoneyRange{start, stop, t.Currency}, nil
 	case *MoneyRange:
 		start, err := t.Start.Sub(v.Start)
 		if err != nil {
@@ -91,7 +94,7 @@ func (t *TaxedMoneyRange) Sub(other interface{}) (*TaxedMoneyRange, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &TaxedMoneyRange{start, stop, t.currency}, nil
+		return &TaxedMoneyRange{start, stop, t.Currency}, nil
 	case *TaxedMoneyRange:
 		start, err := t.Start.Sub(v.Start)
 		if err != nil {
@@ -101,7 +104,7 @@ func (t *TaxedMoneyRange) Sub(other interface{}) (*TaxedMoneyRange, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &TaxedMoneyRange{start, stop, t.currency}, nil
+		return &TaxedMoneyRange{start, stop, t.Currency}, nil
 	default:
 		return nil, ErrUnknownType
 	}
@@ -110,11 +113,11 @@ func (t *TaxedMoneyRange) Sub(other interface{}) (*TaxedMoneyRange, error) {
 // Equal compares two taxed money range
 func (t *TaxedMoneyRange) Equal(other *TaxedMoneyRange) (bool, error) {
 	eq1, err := t.Start.Equal(other.Start)
-	if err != err {
+	if err != nil {
 		return false, err
 	}
 	eq2, err := t.Stop.Equal(other.Stop)
-	if err != err {
+	if err != nil {
 		return false, err
 	}
 	return eq1 && eq2, nil

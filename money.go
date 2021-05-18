@@ -1,7 +1,6 @@
 package goprices
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/shopspring/decimal"
@@ -11,12 +10,6 @@ type Money struct {
 	Amount   *decimal.Decimal
 	Currency string
 }
-
-// ErrNotSameCurrency used when manipulate not-same-type money amounts
-var (
-	ErrNotSameCurrency = errors.New("not same currency")
-	ErrUnknownType     = errors.New("unknown givent type")
-)
 
 // NewMoney returns new Money object
 func NewMoney(amount *decimal.Decimal, currency string) (*Money, error) {
@@ -35,13 +28,7 @@ func (m *Money) String() string {
 	return fmt.Sprintf("Money{%q, %q}", m.Amount.String(), m.Currency)
 }
 
-func (m *Money) sameKind(other *Money) error {
-	if m.Currency == other.Currency {
-		return nil
-	}
-	return ErrNotSameCurrency
-}
-
+// LessThan checks if other's amount is greater than m's amount
 func (m *Money) LessThan(other *Money) (bool, error) {
 	err := m.sameKind(other)
 	if err != nil {
@@ -50,97 +37,82 @@ func (m *Money) LessThan(other *Money) (bool, error) {
 	return m.Amount.LessThan(*other.Amount), nil
 }
 
+// Equal checks if other's amount is equal to m's amount
 func (m *Money) Equal(other *Money) (bool, error) {
 	err := m.sameKind(other)
 	if err != nil {
 		return false, err
 	}
+
 	return m.Amount.Equal(*other.Amount), nil
 }
 
-// LessThanOrEqual check if this money is less than or equal to other
+// LessThanOrEqual check if m's amount is less than or equal to other's amount
 func (m *Money) LessThanOrEqual(other *Money) (bool, error) {
-	less, err := m.LessThan(other)
-	if err != nil {
-		return false, err
+	less, err1 := m.LessThan(other)
+	if err1 != nil {
+		return false, err1
 	}
-	eq, err := m.Equal(other)
-	if err != nil {
-		return false, err
+	eq, err2 := m.Equal(other)
+	if err2 != nil {
+		return false, err2
 	}
 	return less || eq, nil
 }
 
 // Mul multiplty money with the givent other.
-// other must be a *Money, float64, float32, int64, int, int32
+// other must be a float64, float32, int64, int
 func (m *Money) Mul(other interface{}) (*Money, error) {
+	var d decimal.Decimal
+
 	switch t := other.(type) {
-	case *Money:
-		d := m.Amount.Mul(*t.Amount)
-		return NewMoney(&d, m.Currency)
 	case float64:
 		floatDeci := decimal.NewFromFloat(t)
-		d := m.Amount.Mul(floatDeci)
-		return NewMoney(&d, m.Currency)
+		d = m.Amount.Mul(floatDeci)
 	case float32:
 		floatDeci := decimal.NewFromFloat32(t)
-		d := m.Amount.Mul(floatDeci)
-		return NewMoney(&d, m.Currency)
+		d = m.Amount.Mul(floatDeci)
 	case int64:
 		intDeci := decimal.NewFromInt(t)
-		d := m.Amount.Mul(intDeci)
-		return NewMoney(&d, m.Currency)
+		d = m.Amount.Mul(intDeci)
 	case int:
 		intDeci := decimal.NewFromInt32(int32(t))
-		d := m.Amount.Mul(intDeci)
-		return NewMoney(&d, m.Currency)
-	case int32:
-		intDeci := decimal.NewFromInt32(t)
-		d := m.Amount.Mul(intDeci)
-		return NewMoney(&d, m.Currency)
+		d = m.Amount.Mul(intDeci)
 
 	default:
 		return nil, ErrUnknownType
 	}
+
+	return NewMoney(&d, m.Currency)
 }
 
-// Mul divide money with the givent other.
-// other must be a *Money, float64, float32, int64, int, int32
+// TrueDiv divides money with the given other.
+// other must be a float64, float32, int64, int
 func (m *Money) TrueDiv(other interface{}) (*Money, error) {
+	var d decimal.Decimal
+
 	switch t := other.(type) {
-	case *Money:
-		if err := m.sameKind(t); err != nil {
-			return nil, err
-		}
-		d := m.Amount.Div(*t.Amount)
-		return NewMoney(&d, m.Currency)
 	case float64:
 		floatDeci := decimal.NewFromFloat(t)
-		d := m.Amount.Div(floatDeci)
-		return NewMoney(&d, m.Currency)
+		d = m.Amount.Div(floatDeci)
 	case float32:
 		floatDeci := decimal.NewFromFloat32(t)
-		d := m.Amount.Div(floatDeci)
-		return NewMoney(&d, m.Currency)
+		d = m.Amount.Div(floatDeci)
 	case int64:
 		intDeci := decimal.NewFromInt(t)
-		d := m.Amount.Div(intDeci)
-		return NewMoney(&d, m.Currency)
+		d = m.Amount.Div(intDeci)
 	case int:
 		intDeci := decimal.NewFromInt32(int32(t))
-		d := m.Amount.Div(intDeci)
-		return NewMoney(&d, m.Currency)
-	case int32:
-		intDeci := decimal.NewFromInt32(t)
-		d := m.Amount.Div(intDeci)
-		return NewMoney(&d, m.Currency)
+		d = m.Amount.Div(intDeci)
 
 	default:
 		return nil, ErrUnknownType
 	}
+
+	return NewMoney(&d, m.Currency)
 }
 
-// Add adds two money amount together, returns new instance of money
+// Add adds two money amount together, returns new money
 func (m *Money) Add(other *Money) (*Money, error) {
 	if err := m.sameKind(other); err != nil {
 		return nil, err
