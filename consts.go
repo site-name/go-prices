@@ -2,14 +2,13 @@ package goprices
 
 import "errors"
 
-// ErrNotSameCurrency used when manipulate not-same-type money amounts
 var (
-	ErrNotSameCurrency = errors.New("not same currency")
-	ErrUnknownType     = errors.New("unknown given type")
-	ErrUnknownCurrency = errors.New("unknown currency unit")
+	ErrNotSameCurrency = errors.New("not same currency")     // ErrNotSameCurrency used when manipulate not-same-type money amounts
+	ErrUnknownType     = errors.New("unknown given type")    // ErrUnknownType is returned when given interface{} value is invalid
+	ErrUnknownCurrency = errors.New("unknown currency unit") // ErrUnknownCurrency is returned when given currency unit is invalid
 )
 
-// money codes
+// money codes for all countries in the world
 const (
 	AED = "AED"
 	AFN = "AFN"

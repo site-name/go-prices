@@ -6,6 +6,7 @@ import (
 )
 
 var (
+	// ErrStopLessThanStart is used when input stop money less than input start money
 	ErrStopLessThanStart = errors.New("stop must be greater than start")
 )
 
