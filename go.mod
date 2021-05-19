@@ -1,4 +1,4 @@
-module github.com/sitename/goprices
+module github.com/site-name/go-prices
 
 go 1.16
 
