@@ -23,7 +23,7 @@ func TestTrueDiv(t *testing.T) {
 
 func TestMul(t *testing.T) {
 	deci := decimal.NewFromInt(30)
-	m, err := NewMoney(&deci, "USD")
+	m, err := NewMoney(&deci, "usd")
 	if m == nil {
 		t.Fatal("Error creating new money")
 	}

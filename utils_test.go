@@ -11,8 +11,8 @@ func TestCheckCurrency(t *testing.T) {
 	}
 	var values = []testUnit{
 		{"vnd", "VND"},
-		{"usd", "USD"},
-		{"dkk", "DKL"}, // error
+		{"usD", "USD"},
+		{"dkl", "DKL"}, // error
 	}
 
 	for i, v := range values {

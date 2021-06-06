@@ -28,7 +28,11 @@ func (m *Money) sameKind(other *Money) error {
 
 // GetCurrencyPrecision returns a number for money rounding
 func GetCurrencyPrecision(currency string) (int, error) {
-	c, ok := currencies[strings.ToUpper(currency)]
+	currencyCode, err := checkCurrency(currency)
+	if err != nil {
+		return 0, err
+	}
+	c, ok := currencies[currencyCode]
 	if !ok {
 		return 0, ErrUnknownCurrency
 	}
