@@ -20,7 +20,7 @@ func checkCurrency(currencyCode string) (string, error) {
 
 // sameKind checks if other's currency is identical to m's currency
 func (m *Money) sameKind(other *Money) error {
-	if m.Currency != other.Currency {
+	if !strings.EqualFold(m.Currency, other.Currency) {
 		return ErrNotSameCurrency
 	}
 	return nil
