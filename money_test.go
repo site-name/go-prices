@@ -10,6 +10,9 @@ import (
 func TestTrueDiv(t *testing.T) {
 	deci := decimal.NewFromInt(30)
 	m, err := NewMoney(&deci, "USD")
+	if err != nil {
+		t.Fatal(err)
+	}
 	if m == nil {
 		t.Fatal("Error creating new money")
 	}
@@ -24,6 +27,9 @@ func TestTrueDiv(t *testing.T) {
 func TestMul(t *testing.T) {
 	deci := decimal.NewFromInt(30)
 	m, err := NewMoney(&deci, "usd")
+	if err != nil {
+		t.Fatal(err)
+	}
 	if m == nil {
 		t.Fatal("Error creating new money")
 	}
@@ -33,4 +39,23 @@ func TestMul(t *testing.T) {
 	} else {
 		fmt.Println(newMoney)
 	}
+}
+
+func TestEqual(t *testing.T) {
+	deci := decimal.NewFromInt(20)
+	m1, err := NewMoney(&deci, USD)
+	if err != nil {
+		t.Fatalf("Error NewMoney: %v", err)
+	}
+
+	m2 := &Money{&deci, "usd"}
+
+	equal, err := m1.Equal(m2)
+	if err != nil {
+		t.Fatalf("Error Equal: %v", err)
+	}
+	if !equal {
+		t.Fatal("Error equal result")
+	}
+	t.Log(m2)
 }
