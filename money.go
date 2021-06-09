@@ -6,6 +6,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// Money represents a money in real life, it includes Amount and currency
 type Money struct {
 	Amount   *decimal.Decimal
 	Currency string
@@ -121,7 +122,7 @@ func (m *Money) Add(other *Money) (*Money, error) {
 	return &Money{&amount, m.Currency}, nil
 }
 
-// Sub reduce two money amount and returns new instance of money
+// Sub subtracts currenct money to given `money`
 func (m *Money) Sub(other *Money) (*Money, error) {
 	if err := m.sameKind(other); err != nil {
 		return nil, err

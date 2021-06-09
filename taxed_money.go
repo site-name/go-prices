@@ -2,7 +2,7 @@ package goprices
 
 import "fmt"
 
-// TaxedMoney represents taxed money. It wraps net and gross
+// TaxedMoney represents taxed money. It wraps net, gross money and currency.
 type TaxedMoney struct {
 	Net      *Money
 	Gross    *Money

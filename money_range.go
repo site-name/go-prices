@@ -10,7 +10,7 @@ var (
 	ErrStopLessThanStart = errors.New("stop must be greater than start")
 )
 
-// A taxed money range
+// MoneyRange has start and stop ends
 type MoneyRange struct {
 	Start    *Money
 	Stop     *Money
@@ -18,7 +18,7 @@ type MoneyRange struct {
 }
 
 // NewMoneyRange returns a new range. If start is greater than stop or start and stop have different
-// currencies, return nil and not nil error
+// currencies, return nil and non nil error
 func NewMoneyRange(start, stop *Money) (*MoneyRange, error) {
 	ok, err := stop.LessThan(start) // checking for same currency included
 	if err != nil {
@@ -69,7 +69,8 @@ func (m *MoneyRange) Add(other interface{}) (*MoneyRange, error) {
 	}
 }
 
-// Sub reduces a Money or MoneyRange to this MoneyRange
+// Sub subtracts current money to given `other`.
+// `other` can be either `*Money` or `*MoneyRange`
 func (m *MoneyRange) Sub(other interface{}) (*MoneyRange, error) {
 	switch v := other.(type) {
 	case *Money:
@@ -97,7 +98,7 @@ func (m *MoneyRange) Sub(other interface{}) (*MoneyRange, error) {
 	}
 }
 
-// Equal Checks if two MoneyRange are equal
+// Equal Checks if two MoneyRange are equal both `Start`, `Stop` and `Currency`
 func (m *MoneyRange) Equal(other *MoneyRange) bool {
 	b1, err := m.Start.Equal(other.Start)
 	if err != nil {
@@ -141,6 +142,7 @@ func (m *MoneyRange) Quantize() (*MoneyRange, error) {
 	}, nil
 }
 
+// Replace replace Start and Stop of currenct MoneyRagne With two given `start` and `stop` respectively.
 func (m *MoneyRange) Replace(start, stop *Money) (*MoneyRange, error) {
 	if start == nil {
 		start = m.Start
