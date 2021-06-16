@@ -59,3 +59,19 @@ func TestEqual(t *testing.T) {
 	}
 	t.Log(m2)
 }
+
+func TestQuantize(t *testing.T) {
+	deci := decimal.NewFromFloat(20.145)
+	m1, err := NewMoney(&deci, USD)
+	if err != nil {
+		t.Fatalf("Error NewMoney: %v", err)
+	}
+
+	fmt.Println(m1)
+
+	m2, err := m1.Quantize()
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(m2)
+}
