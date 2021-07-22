@@ -11,7 +11,7 @@ type Currency struct {
 	Thousand    string
 }
 
-// currencies contains currencies supported by system.
+// currencies contains currencies supported by this package.
 var currencies map[string]*Currency
 
 func init() {

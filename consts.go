@@ -6,6 +6,17 @@ var (
 	ErrNotSameCurrency = errors.New("not same currency")     // ErrNotSameCurrency is used when perform operations between money with different currencies
 	ErrUnknownType     = errors.New("unknown given type")    // ErrUnknownType is returned when a type is invalid
 	ErrUnknownCurrency = errors.New("unknown currency unit") // ErrUnknownCurrency is returned when given currency unit is invalid
+	ErrNillValue       = errors.New("argument must not be nil")
+	ErrDivisorNotZero  = errors.New("divisor must not be zero")
+)
+
+// Rounding up/down money
+type Rounding byte
+
+// Rounding variants
+const (
+	Up Rounding = iota
+	Down
 )
 
 // most well-known money units

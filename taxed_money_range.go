@@ -2,6 +2,7 @@ package goprices
 
 import (
 	"fmt"
+	"strings"
 )
 
 type TaxedMoneyRange struct {
@@ -13,7 +14,7 @@ type TaxedMoneyRange struct {
 // NewTaxedMoneyRange create new taxed money range.
 // It returns nil and error value if start > stop or they have different currencies
 func NewTaxedMoneyRange(start, stop *TaxedMoney) (*TaxedMoneyRange, error) {
-	if start.Currency != stop.Currency {
+	if !strings.EqualFold(start.Currency, stop.Currency) {
 		return nil, ErrNotSameCurrency
 	}
 
@@ -21,7 +22,6 @@ func NewTaxedMoneyRange(start, stop *TaxedMoney) (*TaxedMoneyRange, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	if less {
 		return nil, ErrStopLessThanStart
 	}
@@ -34,7 +34,8 @@ func (t *TaxedMoneyRange) String() string {
 	return fmt.Sprintf("TaxedMoneyRange{%q, %q}", t.Start.String(), t.Stop.String())
 }
 
-// Add adds this taxed money range to a money, MoneyRange or TaxedMoneyRange
+// Add adds this taxed money range to another value
+// other must be either: *Money, *MoneyRange or *TaxedMoneyRange or *TaxedMoney
 func (t *TaxedMoneyRange) Add(other interface{}) (*TaxedMoneyRange, error) {
 	switch v := other.(type) {
 	case *Money, *TaxedMoney:

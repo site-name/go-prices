@@ -12,11 +12,16 @@ type TaxedMoney struct {
 // NewTaxedMoney returns new TaxedMoney,
 // If net and gross have different currency type, return nil and error
 func NewTaxedMoney(net, gross *Money) (*TaxedMoney, error) {
-	if err := net.sameKind(gross); err != nil {
+	if err := net.SameKind(gross); err != nil {
 		return nil, err
 	}
 
-	return &TaxedMoney{net, gross, net.Currency}, nil
+	unit, err := checkCurrency(net.Currency)
+	if err != nil {
+		return nil, err
+	}
+
+	return &TaxedMoney{net, gross, unit}, nil
 }
 
 // String implements fmt.Stringer interface
@@ -56,21 +61,33 @@ func (t *TaxedMoney) LessThanOrEqual(other *TaxedMoney) (bool, error) {
 	return less || eq, nil
 }
 
-// TrueDiv divides two taxed money
-func (t *TaxedMoney) TrueDiv(other *TaxedMoney) (*TaxedMoney, error) {
-	net, err := t.Net.TrueDiv(other.Net)
+// TrueDiv divides current tabled money to other.
+// `other` must be either `*Decimal` or int
+func (t *TaxedMoney) TrueDiv(other interface{}) (*TaxedMoney, error) {
+	var (
+		newNet   *Money
+		newGross *Money
+		err      error
+	)
+
+	newNet, err = t.Net.TrueDiv(other)
 	if err != nil {
 		return nil, err
 	}
-	gross, err := t.Gross.TrueDiv(other.Gross)
+	newGross, err = t.Gross.TrueDiv(other)
 	if err != nil {
 		return nil, err
 	}
-	return &TaxedMoney{net, gross, t.Currency}, nil
+
+	return &TaxedMoney{
+		Gross:    newGross,
+		Net:      newNet,
+		Currency: t.Currency,
+	}, nil
 }
 
 // Add adds a money or taxed money to this.
-// other must be either Money || TaxedMoney
+// other must be either *Money || *TaxedMoney
 func (t *TaxedMoney) Add(other interface{}) (*TaxedMoney, error) {
 	switch v := other.(type) {
 	case *Money:
@@ -93,6 +110,7 @@ func (t *TaxedMoney) Add(other interface{}) (*TaxedMoney, error) {
 			return nil, err
 		}
 		return &TaxedMoney{net, gross, t.Currency}, nil
+
 	default:
 		return nil, ErrUnknownType
 	}
@@ -122,6 +140,7 @@ func (t *TaxedMoney) Sub(other interface{}) (*TaxedMoney, error) {
 			return nil, err
 		}
 		return &TaxedMoney{net, gross, t.Currency}, nil
+
 	default:
 		return nil, ErrUnknownType
 	}
@@ -143,6 +162,7 @@ func (t *TaxedMoney) Quantize() (*TaxedMoney, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &TaxedMoney{
 		Net:      net,
 		Gross:    gross,

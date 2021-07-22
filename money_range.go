@@ -20,19 +20,23 @@ type MoneyRange struct {
 // NewMoneyRange returns a new range. If start is greater than stop or start and stop have different
 // currencies, return nil and non nil error
 func NewMoneyRange(start, stop *Money) (*MoneyRange, error) {
-	ok, err := stop.LessThan(start) // checking for same currency included
+	if err := start.SameKind(stop); err != nil {
+		return nil, ErrNotSameCurrency
+	}
+
+	unit, err := checkCurrency(start.Currency)
 	if err != nil {
 		return nil, err
 	}
 
-	if ok {
+	if ok, _ := stop.LessThanOrEqual(start); ok {
 		return nil, ErrStopLessThanStart
 	}
 
 	return &MoneyRange{
 		Start:    start,
 		Stop:     stop,
-		Currency: start.Currency,
+		Currency: unit,
 	}, nil
 }
 
@@ -41,7 +45,9 @@ func (m *MoneyRange) String() string {
 	return fmt.Sprintf("Money{%q, %q}", m.Start.String(), m.Stop.String())
 }
 
-// Add adds a Money or MoneyRange to this MoneyRange
+// Add adds a Value to current
+//
+// `other` must be either `*Money` or `*MoneyRange`
 func (m *MoneyRange) Add(other interface{}) (*MoneyRange, error) {
 	switch v := other.(type) {
 	case *Money:
@@ -64,6 +70,7 @@ func (m *MoneyRange) Add(other interface{}) (*MoneyRange, error) {
 			return nil, err
 		}
 		return &MoneyRange{start, stop, m.Currency}, nil
+
 	default:
 		return nil, ErrUnknownType
 	}
@@ -93,35 +100,36 @@ func (m *MoneyRange) Sub(other interface{}) (*MoneyRange, error) {
 			return nil, err
 		}
 		return &MoneyRange{start, stop, m.Currency}, nil
+
 	default:
 		return nil, ErrUnknownType
 	}
 }
 
 // Equal Checks if two MoneyRange are equal both `Start`, `Stop` and `Currency`
-func (m *MoneyRange) Equal(other *MoneyRange) bool {
+func (m *MoneyRange) Equal(other *MoneyRange) (bool, error) {
 	b1, err := m.Start.Equal(other.Start)
 	if err != nil {
-		return false
+		return false, err
 	}
 	b2, err := m.Stop.Equal(other.Stop)
 	if err != nil {
-		return false
+		return false, err
 	}
-	return b1 && b2
+	return b1 && b2, err
 }
 
 // Contains check if a Money is between this MoneyRange's two ends
-func (m *MoneyRange) Contains(item *Money) bool {
+func (m *MoneyRange) Contains(item *Money) (bool, error) {
 	itemGreaterThanStart, err := m.Start.LessThanOrEqual(item)
 	if err != nil {
-		return false
+		return false, err
 	}
 	itemLessThanStop, err := item.LessThanOrEqual(m.Stop)
 	if err != nil {
-		return false
+		return false, err
 	}
-	return itemGreaterThanStart && itemLessThanStop
+	return itemGreaterThanStart && itemLessThanStop, err
 }
 
 //Return a copy of the range with start and stop quantized.
