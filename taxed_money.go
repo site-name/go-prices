@@ -12,16 +12,20 @@ type TaxedMoney struct {
 // NewTaxedMoney returns new TaxedMoney,
 // If net and gross have different currency type, return nil and error
 func NewTaxedMoney(net, gross *Money) (*TaxedMoney, error) {
-	if err := net.SameKind(gross); err != nil {
+	unit1, err := checkCurrency(net.Currency)
+	if err != nil {
 		return nil, err
 	}
-
-	unit, err := checkCurrency(net.Currency)
+	unit2, err := checkCurrency(gross.Currency)
 	if err != nil {
 		return nil, err
 	}
 
-	return &TaxedMoney{net, gross, unit}, nil
+	if unit1 != unit2 {
+		return nil, ErrNotSameCurrency
+	}
+
+	return &TaxedMoney{net, gross, unit1}, nil
 }
 
 // String implements fmt.Stringer interface

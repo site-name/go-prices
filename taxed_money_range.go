@@ -2,7 +2,6 @@ package goprices
 
 import (
 	"fmt"
-	"strings"
 )
 
 type TaxedMoneyRange struct {
@@ -14,8 +13,13 @@ type TaxedMoneyRange struct {
 // NewTaxedMoneyRange create new taxed money range.
 // It returns nil and error value if start > stop or they have different currencies
 func NewTaxedMoneyRange(start, stop *TaxedMoney) (*TaxedMoneyRange, error) {
-	if !strings.EqualFold(start.Currency, stop.Currency) {
-		return nil, ErrNotSameCurrency
+	_, err := checkCurrency(start.Currency)
+	if err != nil {
+		return nil, err
+	}
+	unit, err := checkCurrency(stop.Currency)
+	if err != nil {
+		return nil, err
 	}
 
 	less, err := stop.LessThan(start)
@@ -26,7 +30,7 @@ func NewTaxedMoneyRange(start, stop *TaxedMoney) (*TaxedMoneyRange, error) {
 		return nil, ErrStopLessThanStart
 	}
 
-	return &TaxedMoneyRange{start, stop, start.Currency}, nil
+	return &TaxedMoneyRange{start, stop, unit}, nil
 }
 
 // String implements fmt.Stringer interface

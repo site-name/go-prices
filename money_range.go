@@ -20,16 +20,20 @@ type MoneyRange struct {
 // NewMoneyRange returns a new range. If start is greater than stop or start and stop have different
 // currencies, return nil and non nil error
 func NewMoneyRange(start, stop *Money) (*MoneyRange, error) {
-	if err := start.SameKind(stop); err != nil {
-		return nil, ErrNotSameCurrency
+	_, err := checkCurrency(start.Currency)
+	if err != nil {
+		return nil, err
 	}
-
-	unit, err := checkCurrency(start.Currency)
+	unit, err := checkCurrency(stop.Currency)
 	if err != nil {
 		return nil, err
 	}
 
-	if ok, _ := stop.LessThanOrEqual(start); ok {
+	lessThanOrEqual, err := start.LessThanOrEqual(stop)
+	if err != nil {
+		return nil, err
+	}
+	if !lessThanOrEqual {
 		return nil, ErrStopLessThanStart
 	}
 
