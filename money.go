@@ -3,7 +3,7 @@ package goprices
 import (
 	"fmt"
 
-	"github.com/shopspring/decimal"
+	"github.com/site-name/decimal"
 )
 
 // Money represents an amount of a particular currency.

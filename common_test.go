@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/shopspring/decimal"
+	"github.com/site-name/decimal"
 )
 
 func TestQuantizePrice(t *testing.T) {

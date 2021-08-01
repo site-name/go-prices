@@ -1,6 +1,6 @@
 package goprices
 
-import "github.com/shopspring/decimal"
+import "github.com/site-name/decimal"
 
 // FixedDiscount applys a fixed discount to any price type.
 //

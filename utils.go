@@ -3,7 +3,7 @@ package goprices
 import (
 	"strings"
 
-	"github.com/shopspring/decimal"
+	"github.com/site-name/decimal"
 	"golang.org/x/text/currency"
 )
 
