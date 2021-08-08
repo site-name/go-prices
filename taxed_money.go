@@ -52,6 +52,26 @@ func (t *TaxedMoney) Equal(other *TaxedMoney) (bool, error) {
 	return eq1 && eq2, nil
 }
 
+// Mul multiplies current taxed money with given other
+//
+// `other` can only be either `int` or `Decimal`
+func (m *TaxedMoney) Mul(other interface{}) (*TaxedMoney, error) {
+	net, err := m.Net.Mul(other)
+	if err != nil {
+		return nil, err
+	}
+	gross, err := m.Gross.Mul(other)
+	if err != nil {
+		return nil, err
+	}
+
+	return &TaxedMoney{
+		Net:      net,
+		Gross:    gross,
+		Currency: m.Currency,
+	}, nil
+}
+
 // LessThanOrEqual checks if this money is less than or equal to other.
 func (t *TaxedMoney) LessThanOrEqual(other *TaxedMoney) (bool, error) {
 	less, err := t.LessThan(other)
