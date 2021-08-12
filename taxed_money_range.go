@@ -128,6 +128,34 @@ func (t *TaxedMoneyRange) Equal(other *TaxedMoneyRange) (bool, error) {
 	return eq1 && eq2, nil
 }
 
+// LessThan checks if current taxed money range less than given other
+func (t *TaxedMoneyRange) LessThan(other *TaxedMoneyRange) (bool, error) {
+	l1, err := t.Start.LessThan(other.Start)
+	if err != nil {
+		return false, err
+	}
+	l2, err := t.Stop.LessThan(other.Stop)
+	if err != nil {
+		return false, err
+	}
+
+	return l1 && l2, nil
+}
+
+// LessThanOrEqual checks if current taxed money range less than or equal to given other
+func (t *TaxedMoneyRange) LessThanOrEqual(other *TaxedMoneyRange) (bool, error) {
+	less, err := t.LessThan(other)
+	if err != nil {
+		return false, err
+	}
+	equal, err := t.Equal(other)
+	if err != nil {
+		return false, err
+	}
+
+	return less || equal, nil
+}
+
 // Contains check is given taxed money is in range from start to stop.
 //
 //start <= item <= stop

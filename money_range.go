@@ -123,6 +123,32 @@ func (m *MoneyRange) Equal(other *MoneyRange) (bool, error) {
 	return b1 && b2, err
 }
 
+// LessThan compares currenct money range to given other
+func (m *MoneyRange) LessThan(other *MoneyRange) (bool, error) {
+	l1, err := m.Start.LessThan(other.Start)
+	if err != nil {
+		return false, err
+	}
+	l2, err := m.Stop.LessThan(other.Stop)
+	if err != nil {
+		return false, err
+	}
+	return l2 && l1, nil
+}
+
+// LessThanOrEqual checks if current money range is less than or equal given other
+func (m *MoneyRange) LessThanOrEqual(other *MoneyRange) (bool, error) {
+	less, err := m.LessThan(other)
+	if err != nil {
+		return false, err
+	}
+	equal, err := m.Equal(other)
+	if err != nil {
+		return false, err
+	}
+	return less || equal, nil
+}
+
 // Contains check if a Money is between this MoneyRange's two ends
 func (m *MoneyRange) Contains(item *Money) (bool, error) {
 	itemGreaterThanStart, err := m.Start.LessThanOrEqual(item)
