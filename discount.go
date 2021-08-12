@@ -7,6 +7,8 @@ import "github.com/site-name/decimal"
 // `base` must be either *Money, *MoneyRange, *TaxedMoney, *TaxedMoneyRange
 //
 // Returned interface{} can be either *Money, *MoneyRange, *TaxedMoney, *TaxedMoneyRange
+//
+// the returned interface's type should be identical to given base's type
 func FixedDiscount(base interface{}, discount *Money) (interface{}, error) {
 	switch value := base.(type) {
 	case *MoneyRange:
@@ -48,6 +50,7 @@ func FixedDiscount(base interface{}, discount *Money) (interface{}, error) {
 			return baseSubDiscount, nil
 		}
 		return NewMoney(&decimal.Zero, value.Currency)
+
 	default:
 		return nil, ErrUnknownType
 	}
@@ -81,8 +84,10 @@ func FractionalDiscount(base interface{}, fraction *decimal.Decimal, fromGross b
 		}
 		return NewTaxedMoneyRange(start.(*TaxedMoney), stop.(*TaxedMoney))
 	case *TaxedMoney:
-		var mul *Money
-		var err error
+		var (
+			mul *Money
+			err error
+		)
 		if fromGross {
 			mul, err = value.Gross.Mul(fraction)
 		} else {
@@ -118,14 +123,17 @@ func FractionalDiscount(base interface{}, fraction *decimal.Decimal, fromGross b
 //
 // `percentage` must be either int or *Decimal
 //
-// Returned interface{} can be either *Money, *MoneyRange, *TaxedMoney, *TaxedMoneyRange
+// Returned interface's type should be identical to base's type
 func PercentageDiscount(base interface{}, percentage interface{}, fromGross bool) (interface{}, error) {
 	var d *decimal.Decimal
-	if inter, ok := percentage.(int); ok {
-		d = NewDecimal(decimal.NewFromInt32(int32(inter)))
-	} else if deci, ok := percentage.(*decimal.Decimal); ok {
-		d = deci
-	} else {
+
+	switch t := percentage.(type) {
+	case int:
+		d = NewDecimal(decimal.NewFromInt32(int32(t)))
+	case *decimal.Decimal:
+		d = t
+
+	default:
 		return nil, ErrUnknownType
 	}
 
