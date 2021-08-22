@@ -49,6 +49,11 @@ func (m *MoneyRange) String() string {
 	return fmt.Sprintf("Money{%q, %q}", m.Start.String(), m.Stop.String())
 }
 
+// Currency returns current money range's Currency
+func (m *MoneyRange) Currency() string {
+	return m.Currency
+}
+
 // Add adds a Value to current
 //
 // `other` must be either `*Money` or `*MoneyRange`
