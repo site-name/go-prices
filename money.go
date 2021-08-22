@@ -29,6 +29,11 @@ func (m *Money) String() string {
 	return fmt.Sprintf("Money{%q, %q}", m.Amount.String(), m.Currency)
 }
 
+// Currency returns current money's Currency
+func (m *Money) Currency() string {
+	return m.Currency
+}
+
 // LessThan checks if other's amount is greater than m's amount
 // AND checking same currency included
 func (m *Money) LessThan(other *Money) (bool, error) {
