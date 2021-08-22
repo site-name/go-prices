@@ -38,6 +38,11 @@ func (t *TaxedMoneyRange) String() string {
 	return fmt.Sprintf("TaxedMoneyRange{%q, %q}", t.Start.String(), t.Stop.String())
 }
 
+// Currency returns current taxed money range's Currency
+func (t *TaxedMoneyRange) Currency() string {
+	return t.Currency
+}
+
 // Add adds this taxed money range to another value
 // other must be either: *Money, *MoneyRange or *TaxedMoneyRange or *TaxedMoney
 func (t *TaxedMoneyRange) Add(other interface{}) (*TaxedMoneyRange, error) {
