@@ -33,6 +33,11 @@ func (t *TaxedMoney) String() string {
 	return fmt.Sprintf("TaxedMoney{net=%q, gross=%q}", t.Net.String(), t.Gross.String())
 }
 
+// Currency returns current taxed money's Currency
+func (m *TaxedMoney) Currency() string {
+	return m.Currency
+}
+
 // LessThan check if this money's gross is less than other's gross
 func (t *TaxedMoney) LessThan(other *TaxedMoney) (bool, error) {
 	return t.Gross.LessThan(other.Gross) // currency type check included
