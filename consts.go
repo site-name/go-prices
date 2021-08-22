@@ -10,6 +10,10 @@ var (
 	ErrDivisorNotZero  = errors.New("divisor must not be zero")
 )
 
+type Currencyable interface {
+	Currency() string
+}
+
 // Rounding up/down money
 type Rounding uint8
 
