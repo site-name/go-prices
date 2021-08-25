@@ -11,7 +11,7 @@ var (
 )
 
 type Currencyable interface {
-	Currency() string
+	MyCurrency() string
 }
 
 // Rounding up/down money

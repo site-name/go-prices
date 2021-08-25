@@ -38,8 +38,8 @@ func (t *TaxedMoneyRange) String() string {
 	return fmt.Sprintf("TaxedMoneyRange{%q, %q}", t.Start.String(), t.Stop.String())
 }
 
-// Currency returns current taxed money range's Currency
-func (t *TaxedMoneyRange) Currency() string {
+// MyCurrency returns current taxed money range's Currency
+func (t *TaxedMoneyRange) MyCurrency() string {
 	return t.Currency
 }
 

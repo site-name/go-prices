@@ -29,8 +29,8 @@ func (m *Money) String() string {
 	return fmt.Sprintf("Money{%q, %q}", m.Amount.String(), m.Currency)
 }
 
-// Currency returns current money's Currency
-func (m *Money) Currency() string {
+// MyCurrency returns current money's Currency
+func (m *Money) MyCurrency() string {
 	return m.Currency
 }
 

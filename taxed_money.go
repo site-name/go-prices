@@ -33,8 +33,8 @@ func (t *TaxedMoney) String() string {
 	return fmt.Sprintf("TaxedMoney{net=%q, gross=%q}", t.Net.String(), t.Gross.String())
 }
 
-// Currency returns current taxed money's Currency
-func (m *TaxedMoney) Currency() string {
+// MyCurrency returns current taxed money's Currency
+func (m *TaxedMoney) MyCurrency() string {
 	return m.Currency
 }
 
