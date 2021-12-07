@@ -8,12 +8,12 @@ import (
 
 // Money represents an amount of a particular currency.
 type Money struct {
-	Amount   *decimal.Decimal
+	Amount   decimal.Decimal
 	Currency string
 }
 
 // NewMoney returns new Money object
-func NewMoney(amount *decimal.Decimal, currency string) (*Money, error) {
+func NewMoney(amount decimal.Decimal, currency string) (*Money, error) {
 	unit, err := checkCurrency(currency)
 	if err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func (m *Money) LessThan(other *Money) (bool, error) {
 	if err := m.SameKind(other); err != nil {
 		return false, err
 	}
-	return m.Amount.LessThan(*other.Amount), nil
+	return m.Amount.LessThan(other.Amount), nil
 }
 
 // Equal checks if other's amount is equal to m's amount
@@ -48,7 +48,7 @@ func (m *Money) Equal(other *Money) (bool, error) {
 	if err := m.SameKind(other); err != nil {
 		return false, err
 	}
-	return m.Amount.Equal(*other.Amount), nil
+	return m.Amount.Equal(other.Amount), nil
 }
 
 // LessThanOrEqual check if m's amount is less than or equal to other's amount
@@ -57,24 +57,29 @@ func (m *Money) LessThanOrEqual(other *Money) (bool, error) {
 		return false, err
 	}
 
-	return m.Amount.LessThanOrEqual(*other.Amount), nil
+	return m.Amount.LessThanOrEqual(other.Amount), nil
 }
 
 // Mul multiplty money with the givent other.
-// other must be either `int` or `Decimal`
+//
+// NOTE: other must be either `int` or `float64` or `Decimal`
 func (m *Money) Mul(other interface{}) (*Money, error) {
 	switch t := other.(type) {
 	case int:
 		return &Money{
-			Amount:   NewDecimal(m.Amount.Mul(decimal.NewFromInt32(int32(t)))),
+			Amount:   m.Amount.Mul(decimal.NewFromInt32(int32(t))),
 			Currency: m.Currency,
 		}, nil
-	case *decimal.Decimal:
-		if t == nil {
-			return nil, ErrNillValue
-		}
+
+	case float64:
 		return &Money{
-			Amount:   NewDecimal(m.Amount.Mul(*t)),
+			Amount:   m.Amount.Mul(decimal.NewFromFloat(t)),
+			Currency: m.Currency,
+		}, nil
+
+	case decimal.Decimal:
+		return &Money{
+			Amount:   m.Amount.Mul(t),
 			Currency: m.Currency,
 		}, nil
 
@@ -84,7 +89,8 @@ func (m *Money) Mul(other interface{}) (*Money, error) {
 }
 
 // TrueDiv divides money with the given other.
-// other must be either `*Money` or `int` or `*Decimal`
+//
+// NOTE: other must be either `*Money` or `int` or `float64` or `Decimal`
 func (m *Money) TrueDiv(other interface{}) (*Money, error) {
 	res := &Money{
 		Currency: m.Currency,
@@ -95,20 +101,25 @@ func (m *Money) TrueDiv(other interface{}) (*Money, error) {
 		if t == 0 {
 			return nil, ErrDivisorNotZero
 		}
-		res.Amount = NewDecimal(m.Amount.Div(decimal.NewFromInt32(int32(t))))
+		res.Amount = m.Amount.Div(decimal.NewFromInt32(int32(t)))
+
+	case float64:
+		res.Amount = m.Amount.Div(decimal.NewFromFloat(t))
+
 	case *Money:
-		if IsZero(t.Amount) {
+		if t.Amount.IsZero() {
 			return nil, ErrDivisorNotZero
 		}
 		if err := m.SameKind(t); err != nil {
 			return nil, err
 		}
-		res.Amount = NewDecimal(m.Amount.Div(*t.Amount))
-	case *decimal.Decimal:
-		if IsZero(t) {
+		res.Amount = m.Amount.Div(t.Amount)
+
+	case decimal.Decimal:
+		if t.IsZero() {
 			return nil, ErrDivisorNotZero
 		}
-		res.Amount = NewDecimal(m.Amount.Div(*t))
+		res.Amount = m.Amount.Div(t)
 
 	default:
 		return nil, ErrUnknownType
@@ -123,7 +134,7 @@ func (m *Money) Add(other *Money) (*Money, error) {
 		return nil, err
 	}
 	return &Money{
-		NewDecimal(m.Amount.Add(*other.Amount)),
+		m.Amount.Add(other.Amount),
 		m.Currency,
 	}, nil
 }
@@ -134,14 +145,9 @@ func (m *Money) Sub(other *Money) (*Money, error) {
 		return nil, err
 	}
 	return &Money{
-		NewDecimal(m.Amount.Sub(*other.Amount)),
+		m.Amount.Sub(other.Amount),
 		m.Currency,
 	}, nil
-}
-
-// IsNotZero checks if current money's Amount is not zero
-func (m *Money) IsNotZero() bool {
-	return !m.Amount.IsZero()
 }
 
 // func (m *Money) FlatTax(taxRate *decimal.Decimal, kepGross bool) {
@@ -164,7 +170,7 @@ func (m *Money) Quantize() (*Money, error) {
 	}
 
 	return &Money{
-		Amount:   NewDecimal(m.Amount.Round(int32(places))),
+		Amount:   m.Amount.Round(int32(places)),
 		Currency: m.Currency,
 	}, nil
 }
@@ -182,6 +188,6 @@ func (m *Money) FixedDiscount(discount *Money) (*Money, error) {
 
 	return &Money{
 		Currency: m.Currency,
-		Amount:   &decimal.Zero,
+		Amount:   decimal.Zero,
 	}, nil
 }

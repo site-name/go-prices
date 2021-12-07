@@ -9,14 +9,14 @@ import (
 
 func TestTrueDiv(t *testing.T) {
 	deci := decimal.NewFromInt(30)
-	m, err := NewMoney(&deci, "USD")
+	m, err := NewMoney(deci, "USD")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if m == nil {
 		t.Fatal("Error creating new money")
 	}
-	newMoney, err := m.TrueDiv(22.1212)
+	newMoney, err := m.TrueDiv(22.34)
 	if err != nil {
 		t.Fatal(err)
 	} else {
@@ -26,7 +26,7 @@ func TestTrueDiv(t *testing.T) {
 
 func TestMul(t *testing.T) {
 	deci := decimal.NewFromInt(30)
-	m, err := NewMoney(&deci, "usd")
+	m, err := NewMoney(deci, "usd")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,12 +43,12 @@ func TestMul(t *testing.T) {
 
 func TestEqual(t *testing.T) {
 	deci := decimal.NewFromInt(20)
-	m1, err := NewMoney(&deci, USD)
+	m1, err := NewMoney(deci, USD)
 	if err != nil {
 		t.Fatalf("Error NewMoney: %v", err)
 	}
 
-	m2 := &Money{&deci, "usd"}
+	m2 := &Money{deci, "usd"}
 
 	equal, err := m1.Equal(m2)
 	if err != nil {
@@ -62,7 +62,7 @@ func TestEqual(t *testing.T) {
 
 func TestQuantize(t *testing.T) {
 	deci := decimal.NewFromFloat(20.145)
-	m1, err := NewMoney(&deci, USD)
+	m1, err := NewMoney(deci, USD)
 	if err != nil {
 		t.Fatalf("Error NewMoney: %v", err)
 	}
@@ -74,4 +74,52 @@ func TestQuantize(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Println(m2)
+}
+
+type testCase struct {
+	left     Money
+	right    Money
+	expected bool
+}
+
+func TestLessThan(t *testing.T) {
+
+	var testCases = []testCase{
+		{
+			left: Money{
+				Amount:   decimal.NewFromFloat(34.5),
+				Currency: USD,
+			},
+			right: Money{
+				Amount:   decimal.NewFromInt(35),
+				Currency: USD,
+			},
+			expected: true,
+		},
+		{
+			left: Money{
+				Amount:   decimal.NewFromFloat(34.5),
+				Currency: VND,
+			},
+			right: Money{
+				Amount:   decimal.NewFromFloat(79),
+				Currency: VND,
+			},
+			expected: true,
+		},
+	}
+
+	t.Run("LessThan", func(t *testing.T) {
+		for index, testCase := range testCases {
+
+			lessThan, err := testCase.left.LessThan(&testCase.right)
+			if err != nil {
+				t.Fatalf("case %d: error compare money values: %v", index, err)
+			}
+
+			if lessThan != testCase.expected {
+				t.Fatalf("Case %d: expected: %t, got: %t", index, testCase.expected, lessThan)
+			}
+		}
+	})
 }

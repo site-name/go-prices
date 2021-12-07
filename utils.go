@@ -3,7 +3,6 @@ package goprices
 import (
 	"strings"
 
-	"github.com/site-name/decimal"
 	"golang.org/x/text/currency"
 )
 
@@ -44,14 +43,4 @@ func GetCurrencyPrecision(currency string) (int, error) {
 		return 0, ErrUnknownCurrency
 	}
 	return c.Fraction, nil
-}
-
-// NewDecimal simply turns `Decimal` to `*Decimal`
-func NewDecimal(d decimal.Decimal) *decimal.Decimal {
-	return &d
-}
-
-// IsZero checks if given `d` is not decimal zero (0)
-func IsZero(d *decimal.Decimal) bool {
-	return d.Equal(decimal.Zero)
 }

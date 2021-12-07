@@ -8,7 +8,7 @@ import (
 )
 
 func TestQuantizePrice(t *testing.T) {
-	m, err := NewMoney(NewDecimal(decimal.NewFromFloat(23.456)), "vnd")
+	m, err := NewMoney(decimal.NewFromFloat(23.456), "vnd")
 	if err != nil {
 		t.Fatal(err)
 	}

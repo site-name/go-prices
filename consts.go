@@ -10,6 +10,7 @@ var (
 	ErrDivisorNotZero  = errors.New("divisor must not be zero")
 )
 
+// Currencyable
 type Currencyable interface {
 	MyCurrency() string
 }

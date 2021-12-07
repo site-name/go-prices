@@ -22,11 +22,11 @@ type MoneyRange struct {
 func NewMoneyRange(start, stop *Money) (*MoneyRange, error) {
 	_, err := checkCurrency(start.Currency)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("start has invalid currency: %w", err)
 	}
 	unit, err := checkCurrency(stop.Currency)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("stop has invalid currency: %w", err)
 	}
 
 	lessThanOrEqual, err := start.LessThanOrEqual(stop)
@@ -69,6 +69,7 @@ func (m *MoneyRange) Add(other interface{}) (*MoneyRange, error) {
 			return nil, err
 		}
 		return &MoneyRange{start, stop, m.Currency}, nil
+
 	case *MoneyRange:
 		start, err := m.Start.Add(v.Start)
 		if err != nil {
@@ -99,6 +100,7 @@ func (m *MoneyRange) Sub(other interface{}) (*MoneyRange, error) {
 			return nil, err
 		}
 		return &MoneyRange{start, stop, m.Currency}, nil
+
 	case *MoneyRange:
 		start, err := m.Start.Sub(v.Start)
 		if err != nil {
@@ -155,12 +157,12 @@ func (m *MoneyRange) LessThanOrEqual(other *MoneyRange) (bool, error) {
 }
 
 // Contains check if a Money is between this MoneyRange's two ends
-func (m *MoneyRange) Contains(item *Money) (bool, error) {
-	itemGreaterThanStart, err := m.Start.LessThanOrEqual(item)
+func (m *MoneyRange) Contains(value *Money) (bool, error) {
+	itemGreaterThanStart, err := m.Start.LessThanOrEqual(value)
 	if err != nil {
 		return false, err
 	}
-	itemLessThanStop, err := item.LessThanOrEqual(m.Stop)
+	itemLessThanStop, err := value.LessThanOrEqual(m.Stop)
 	if err != nil {
 		return false, err
 	}
