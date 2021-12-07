@@ -9,11 +9,11 @@ import (
 
 func Test_FixedDiscount(t *testing.T) {
 
-	discount, err := NewMoney(decimal.NewFromFloat(23.45), "JPY")
+	discount, err := NewMoney(23.45, "JPY")
 	if err != nil {
 		t.Fatal(err)
 	}
-	m, err := NewMoney(decimal.NewFromInt(45), "JPY")
+	m, err := NewMoney(45, "JPY")
 	if err != nil {
 		t.Fatal(err)
 	}

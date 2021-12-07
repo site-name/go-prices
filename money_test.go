@@ -8,8 +8,7 @@ import (
 )
 
 func TestTrueDiv(t *testing.T) {
-	deci := decimal.NewFromInt(30)
-	m, err := NewMoney(deci, "USD")
+	m, err := NewMoney(60, "USD")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -25,8 +24,7 @@ func TestTrueDiv(t *testing.T) {
 }
 
 func TestMul(t *testing.T) {
-	deci := decimal.NewFromInt(30)
-	m, err := NewMoney(deci, "usd")
+	m, err := NewMoney(55, "usd")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +41,7 @@ func TestMul(t *testing.T) {
 
 func TestEqual(t *testing.T) {
 	deci := decimal.NewFromInt(20)
-	m1, err := NewMoney(deci, USD)
+	m1, err := NewMoney(20, USD)
 	if err != nil {
 		t.Fatalf("Error NewMoney: %v", err)
 	}
@@ -61,8 +59,7 @@ func TestEqual(t *testing.T) {
 }
 
 func TestQuantize(t *testing.T) {
-	deci := decimal.NewFromFloat(20.145)
-	m1, err := NewMoney(deci, USD)
+	m1, err := NewMoney(20.145, USD)
 	if err != nil {
 		t.Fatalf("Error NewMoney: %v", err)
 	}

@@ -13,13 +13,13 @@ type Money struct {
 }
 
 // NewMoney returns new Money object
-func NewMoney(amount decimal.Decimal, currency string) (*Money, error) {
+func NewMoney(amount float64, currency string) (*Money, error) {
 	unit, err := checkCurrency(currency)
 	if err != nil {
 		return nil, err
 	}
 	return &Money{
-		Amount:   amount,
+		Amount:   decimal.NewFromFloat(amount),
 		Currency: unit,
 	}, nil
 }

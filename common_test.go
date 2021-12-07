@@ -3,12 +3,10 @@ package goprices
 import (
 	"fmt"
 	"testing"
-
-	"github.com/site-name/decimal"
 )
 
 func TestQuantizePrice(t *testing.T) {
-	m, err := NewMoney(decimal.NewFromFloat(23.456), "vnd")
+	m, err := NewMoney(23.456, "vnd")
 	if err != nil {
 		t.Fatal(err)
 	}

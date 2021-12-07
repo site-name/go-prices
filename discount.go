@@ -49,7 +49,7 @@ func FixedDiscount(base interface{}, discount *Money) (interface{}, error) {
 		if baseSubDiscount.Amount.GreaterThan(decimal.Zero) {
 			return baseSubDiscount, nil
 		}
-		return NewMoney(decimal.Zero, value.Currency)
+		return NewMoney(0, value.Currency)
 
 	default:
 		return nil, ErrUnknownType
