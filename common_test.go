@@ -11,7 +11,7 @@ func TestQuantizePrice(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := QuantizePrice(m)
+	res, err := QuantizePrice(m, Ceil)
 	if err != nil {
 		t.Fatal(err)
 	}

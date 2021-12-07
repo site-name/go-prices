@@ -4,7 +4,7 @@ package goprices
 type Currency struct {
 	Code        string
 	NumericCode string
-	Fraction    int
+	Fraction    int32
 	Grapheme    string
 	Template    string
 	Decimal     string

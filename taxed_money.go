@@ -182,12 +182,12 @@ func (t *TaxedMoney) Tax() (*Money, error) {
 
 // Return a new instance with both net and gross quantized.
 // All arguments are passed to `Money.quantize
-func (t *TaxedMoney) Quantize() (*TaxedMoney, error) {
-	net, err := t.Net.Quantize()
+func (t *TaxedMoney) Quantize(round Rounding) (*TaxedMoney, error) {
+	net, err := t.Net.Quantize(round)
 	if err != nil {
 		return nil, err
 	}
-	gross, err := t.Gross.Quantize()
+	gross, err := t.Gross.Quantize(round)
 	if err != nil {
 		return nil, err
 	}

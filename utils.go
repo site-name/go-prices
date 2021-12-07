@@ -33,7 +33,7 @@ func (m *Money) SameKind(other *Money) error {
 //
 // E.g:
 //  GetCurrencyPrecision("vnd") => 0, nil
-func GetCurrencyPrecision(currency string) (int, error) {
+func GetCurrencyPrecision(currency string) (int32, error) {
 	currencyCode, err := checkCurrency(currency)
 	if err != nil {
 		return 0, err

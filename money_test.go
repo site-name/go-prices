@@ -66,7 +66,7 @@ func TestQuantize(t *testing.T) {
 
 	fmt.Println(m1)
 
-	m2, err := m1.Quantize()
+	m2, err := m1.Quantize(Up)
 	if err != nil {
 		t.Fatal(err)
 	}

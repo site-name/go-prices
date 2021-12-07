@@ -163,14 +163,30 @@ func (m *Money) Sub(other *Money) (*Money, error) {
 // Otherwise the resulting exponent will be set to the correct exponent
 // of the currency if it's known and to default (two decimal places)
 // otherwise.
-func (m *Money) Quantize() (*Money, error) {
-	places, err := GetCurrencyPrecision(m.Currency)
+func (m *Money) Quantize(round Rounding) (*Money, error) {
+	precision, err := GetCurrencyPrecision(m.Currency)
 	if err != nil {
 		return nil, err
 	}
 
+	var roundFunc RoundFunc = nil
+
+	switch round {
+	case Up:
+		roundFunc = m.Amount.RoundUp
+	case Down:
+		roundFunc = m.Amount.RoundDown
+	case Ceil:
+		roundFunc = m.Amount.RoundCeil
+	case Floor:
+		roundFunc = m.Amount.RoundFloor
+
+	default:
+		return nil, ErrInvalidRounding
+	}
+
 	return &Money{
-		Amount:   m.Amount.Round(int32(places)),
+		Amount:   roundFunc(precision),
 		Currency: m.Currency,
 	}, nil
 }

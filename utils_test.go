@@ -29,7 +29,7 @@ func TestCheckCurrency(t *testing.T) {
 func TestGetCurrencyPrecision(t *testing.T) {
 	type testUnit struct {
 		currency string
-		expected int
+		expected int32
 	}
 	testCases := []testUnit{
 		{VND, 0},

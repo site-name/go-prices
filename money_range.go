@@ -171,12 +171,12 @@ func (m *MoneyRange) Contains(value *Money) (bool, error) {
 
 //Return a copy of the range with start and stop quantized.
 // All arguments are passed to `Money.quantize
-func (m *MoneyRange) Quantize() (*MoneyRange, error) {
-	start, err := m.Start.Quantize()
+func (m *MoneyRange) Quantize(round Rounding) (*MoneyRange, error) {
+	start, err := m.Start.Quantize(round)
 	if err != nil {
 		return nil, err
 	}
-	stop, err := m.Stop.Quantize()
+	stop, err := m.Stop.Quantize(round)
 	if err != nil {
 		return nil, err
 	}

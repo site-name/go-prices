@@ -1,6 +1,10 @@
 package goprices
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/site-name/decimal"
+)
 
 var (
 	ErrNotSameCurrency = errors.New("not same currency")     // ErrNotSameCurrency is used when perform operations between money with different currencies
@@ -8,12 +12,16 @@ var (
 	ErrUnknownCurrency = errors.New("unknown currency unit") // ErrUnknownCurrency is returned when given currency unit is invalid
 	ErrNillValue       = errors.New("argument must not be nil")
 	ErrDivisorNotZero  = errors.New("divisor must not be zero")
+	ErrInvalidRounding = errors.New("invalid rounding")
 )
 
 // Currencyable
 type Currencyable interface {
 	MyCurrency() string
 }
+
+// RoundFunc
+type RoundFunc func(places int32) decimal.Decimal
 
 // Rounding up/down money
 type Rounding uint8
@@ -22,6 +30,8 @@ type Rounding uint8
 const (
 	Up Rounding = iota
 	Down
+	Ceil
+	Floor
 )
 
 var (
