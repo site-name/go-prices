@@ -30,7 +30,7 @@ func NewTaxedMoney(net, gross *Money) (*TaxedMoney, error) {
 
 // String implements fmt.Stringer interface
 func (t *TaxedMoney) String() string {
-	return fmt.Sprintf("TaxedMoney{net=%q, gross=%q}", t.Net.String(), t.Gross.String())
+	return fmt.Sprintf("TaxedMoney{net=%s, gross=%s}", t.Net.String(), t.Gross.String())
 }
 
 // MyCurrency returns current taxed money's Currency

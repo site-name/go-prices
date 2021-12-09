@@ -35,7 +35,7 @@ func NewTaxedMoneyRange(start, stop *TaxedMoney) (*TaxedMoneyRange, error) {
 
 // String implements fmt.Stringer interface
 func (t *TaxedMoneyRange) String() string {
-	return fmt.Sprintf("TaxedMoneyRange{%q, %q}", t.Start.String(), t.Stop.String())
+	return fmt.Sprintf("TaxedMoneyRange{%s, %s}", t.Start.String(), t.Stop.String())
 }
 
 // MyCurrency returns current taxed money range's Currency

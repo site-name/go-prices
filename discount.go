@@ -21,6 +21,7 @@ func FixedDiscount(base interface{}, discount *Money) (interface{}, error) {
 			return nil, err
 		}
 		return NewMoneyRange(start.(*Money), stop.(*Money))
+
 	case *TaxedMoneyRange:
 		start, err := FixedDiscount(value.Start, discount)
 		if err != nil {
@@ -31,6 +32,7 @@ func FixedDiscount(base interface{}, discount *Money) (interface{}, error) {
 			return nil, err
 		}
 		return NewTaxedMoneyRange(start.(*TaxedMoney), stop.(*TaxedMoney))
+
 	case *TaxedMoney:
 		net, err := FixedDiscount(value.Net, discount)
 		if err != nil {
@@ -41,6 +43,7 @@ func FixedDiscount(base interface{}, discount *Money) (interface{}, error) {
 			return nil, err
 		}
 		return NewTaxedMoney(net.(*Money), gross.(*Money))
+
 	case *Money:
 		baseSubDiscount, err := value.Sub(discount)
 		if err != nil {
@@ -73,6 +76,7 @@ func FractionalDiscount(base interface{}, fraction decimal.Decimal, fromGross bo
 			return nil, err
 		}
 		return NewMoneyRange(start.(*Money), stop.(*Money))
+
 	case *TaxedMoneyRange:
 		start, err := FractionalDiscount(value.Start, fraction, fromGross)
 		if err != nil {
@@ -83,6 +87,7 @@ func FractionalDiscount(base interface{}, fraction decimal.Decimal, fromGross bo
 			return nil, err
 		}
 		return NewTaxedMoneyRange(start.(*TaxedMoney), stop.(*TaxedMoney))
+
 	case *TaxedMoney:
 		var (
 			mul *Money
@@ -101,6 +106,7 @@ func FractionalDiscount(base interface{}, fraction decimal.Decimal, fromGross bo
 			return nil, err
 		}
 		return FixedDiscount(value, discount)
+
 	case *Money:
 		mul, err := value.Mul(fraction)
 		if err != nil {

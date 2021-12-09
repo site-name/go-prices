@@ -26,7 +26,7 @@ func NewMoney(amount float64, currency string) (*Money, error) {
 
 // String implements fmt.Stringer interface
 func (m *Money) String() string {
-	return fmt.Sprintf("Money{%q, %q}", m.Amount.String(), m.Currency)
+	return fmt.Sprintf("Money{%s, %s}", m.Amount.String(), m.Currency)
 }
 
 // MyCurrency returns current money's Currency

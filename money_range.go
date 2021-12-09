@@ -46,7 +46,7 @@ func NewMoneyRange(start, stop *Money) (*MoneyRange, error) {
 
 // String implements fmt.Stringer interface{}
 func (m *MoneyRange) String() string {
-	return fmt.Sprintf("Money{%q, %q}", m.Start.String(), m.Stop.String())
+	return fmt.Sprintf("Money{%s, %s}", m.Start.String(), m.Stop.String())
 }
 
 // MyCurrency returns current money range's Currency
