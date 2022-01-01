@@ -179,12 +179,12 @@ func (t *TaxedMoneyRange) Contains(item *TaxedMoney) (bool, error) {
 // Return a copy of the range with start and stop quantized.
 // All arguments are passed to `TaxedMoney.quantize` which in turn calls
 // `Money.quantize
-func (t *TaxedMoneyRange) Quantize(round Rounding) (*TaxedMoneyRange, error) {
-	start, err := t.Start.Quantize(round)
+func (t *TaxedMoneyRange) Quantize(exp *int32, round Rounding) (*TaxedMoneyRange, error) {
+	start, err := t.Start.Quantize(exp, round)
 	if err != nil {
 		return nil, err
 	}
-	stop, err := t.Stop.Quantize(round)
+	stop, err := t.Stop.Quantize(exp, round)
 	if err != nil {
 		return nil, err
 	}

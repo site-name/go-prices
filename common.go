@@ -5,11 +5,11 @@ package goprices
 func QuantizePrice(price interface{}, round Rounding) (interface{}, error) {
 	switch v := price.(type) {
 	case *TaxedMoney:
-		return v.Quantize(round)
+		return v.Quantize(nil, round)
 	case *Money:
 		return v.Quantize(nil, round)
 	case *TaxedMoneyRange:
-		return v.Quantize(round)
+		return v.Quantize(nil, round)
 
 	default:
 		return nil, ErrUnknownType
