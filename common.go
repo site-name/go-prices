@@ -7,7 +7,7 @@ func QuantizePrice(price interface{}, round Rounding) (interface{}, error) {
 	case *TaxedMoney:
 		return v.Quantize(round)
 	case *Money:
-		return v.Quantize(round)
+		return v.Quantize(nil, round)
 	case *TaxedMoneyRange:
 		return v.Quantize(round)
 

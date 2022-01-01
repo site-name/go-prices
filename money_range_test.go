@@ -6,7 +6,7 @@ import (
 )
 
 func TestNewMoneyRange(t *testing.T) {
-	start, err := NewMoney(2345, USD)
+	start, err := NewMoney(23.45, USD)
 	if err != nil {
 		t.Fatalf("error create start money: %v", err)
 	}

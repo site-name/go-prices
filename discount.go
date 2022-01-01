@@ -101,7 +101,7 @@ func FractionalDiscount(base interface{}, fraction decimal.Decimal, fromGross bo
 		if err != nil {
 			return nil, err
 		}
-		discount, err := mul.Quantize(Down)
+		discount, err := mul.Quantize(nil, Down)
 		if err != nil {
 			return nil, err
 		}
@@ -112,7 +112,7 @@ func FractionalDiscount(base interface{}, fraction decimal.Decimal, fromGross bo
 		if err != nil {
 			return nil, err
 		}
-		discount, err := mul.Quantize(Down)
+		discount, err := mul.Quantize(nil, Down)
 		if err != nil {
 			return nil, err
 		}

@@ -44,3 +44,7 @@ func GetCurrencyPrecision(currency string) (int32, error) {
 	}
 	return c.Fraction, nil
 }
+
+func newInt32(in int32) *int32 {
+	return &in
+}

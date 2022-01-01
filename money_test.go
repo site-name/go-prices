@@ -59,14 +59,14 @@ func TestEqual(t *testing.T) {
 }
 
 func TestQuantize(t *testing.T) {
-	m1, err := NewMoney(20.145, USD)
+	m1, err := NewMoney(20.12345, USD)
 	if err != nil {
 		t.Fatalf("Error NewMoney: %v", err)
 	}
 
 	fmt.Println(m1)
 
-	m2, err := m1.Quantize(Up)
+	m2, err := m1.Quantize(newInt32(4), Up)
 	if err != nil {
 		t.Fatal(err)
 	}
