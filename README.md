@@ -7,15 +7,27 @@ thank to https://github.com/Rhymond/go-money, this library was done properly.
 
 **Example**
 
-```go  
+```go
+  package main
+  
   import (
     money "github.com/site-name/go-prices"
+    "log"
   )
 
-  money1, _ := money.NewMoney(34.56, "USD")
-  money2, _ := money.NewMoney(23, "usd")
+  money1, err := money.NewMoney(34.56, "USD")
+  if err != nil {
+    log.Fatalln(err)
+  }
+  money2, err := money.NewMoney(23, "usd")
+  if err != nil {
+    log.Fatalln(err)
+  }
   
-  sum, _ := money1.Add(money2)
+  sum, err := money1.Add(money2)
+  if err != nil {
+    log.Fatalln(err)
+  }
   
   fmt.Println(sum.String())
 ```
