@@ -48,10 +48,7 @@ func TestEqual(t *testing.T) {
 
 	m2 := &Money{deci, "usd"}
 
-	equal, err := m1.Equal(m2)
-	if err != nil {
-		t.Fatalf("Error Equal: %v", err)
-	}
+	equal := m1.Equal(m2)
 	if !equal {
 		t.Fatal("Error equal result")
 	}
@@ -66,7 +63,7 @@ func TestQuantize(t *testing.T) {
 
 	fmt.Println(m1)
 
-	m2, err := m1.Quantize(newInt32(4), Up)
+	m2, err := m1.Quantize(newInt(4), Up)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,10 +106,7 @@ func TestLessThan(t *testing.T) {
 	t.Run("LessThan", func(t *testing.T) {
 		for index, testCase := range testCases {
 
-			lessThan, err := testCase.left.LessThan(&testCase.right)
-			if err != nil {
-				t.Fatalf("case %d: error compare money values: %v", index, err)
-			}
+			lessThan := testCase.left.LessThan(&testCase.right)
 
 			if lessThan != testCase.expected {
 				t.Fatalf("Case %d: expected: %t, got: %t", index, testCase.expected, lessThan)

@@ -6,12 +6,12 @@ import (
 )
 
 func TestQuantizePrice(t *testing.T) {
-	m, err := NewMoney(23.456, "vnd")
+	money, err := NewMoney(34.497, "USD")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	res, err := QuantizePrice(m, Ceil)
+	res, err := QuantizePrice[*Money](money, Up)
 	if err != nil {
 		t.Fatal(err)
 	}

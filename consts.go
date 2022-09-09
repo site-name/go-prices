@@ -7,12 +7,14 @@ import (
 )
 
 var (
-	ErrNotSameCurrency = errors.New("not same currency")     // ErrNotSameCurrency is used when perform operations between money with different currencies
-	ErrUnknownType     = errors.New("unknown given type")    // ErrUnknownType is returned when a type is invalid
-	ErrUnknownCurrency = errors.New("unknown currency unit") // ErrUnknownCurrency is returned when given currency unit is invalid
-	ErrNillValue       = errors.New("argument must not be nil")
-	ErrDivisorNotZero  = errors.New("divisor must not be zero")
-	ErrInvalidRounding = errors.New("invalid rounding")
+	ErrNotSameCurrency   = errors.New("not same currency")     // ErrNotSameCurrency is used when perform operations between money with different currencies
+	ErrUnknownType       = errors.New("unknown given type")    // ErrUnknownType is returned when a type is invalid
+	ErrUnknownCurrency   = errors.New("unknown currency unit") // ErrUnknownCurrency is returned when given currency unit is invalid
+	ErrNillValue         = errors.New("argument must not be nil")
+	ErrDivisorZero       = errors.New("divisor must not be zero")
+	ErrInvalidRounding   = errors.New("invalid rounding")
+	ErrMoneyNegative     = errors.New("money amount can not be negative")
+	ErrStopLessThanStart = errors.New("stop must be greater than start")
 )
 
 // Currencyable

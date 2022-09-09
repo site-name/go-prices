@@ -4,7 +4,7 @@ package goprices
 type Currency struct {
 	Code        string
 	NumericCode string
-	Fraction    int32
+	Fraction    int
 	Grapheme    string
 	Template    string
 	Decimal     string
@@ -12,6 +12,7 @@ type Currency struct {
 }
 
 // currencies contains currencies supported by this package.
+// refer to https://github.com/Rhymond/go-money
 var currencies = map[string]*Currency{
 	AED: {Decimal: ".", Thousand: ",", Code: AED, Fraction: 2, NumericCode: "784", Grapheme: ".\u062f.\u0625", Template: "1 $"},
 	AFN: {Decimal: ".", Thousand: ",", Code: AFN, Fraction: 2, NumericCode: "971", Grapheme: "\u060b", Template: "1 $"},

@@ -16,7 +16,7 @@ func TestCheckCurrency(t *testing.T) {
 	}
 
 	for i, v := range values {
-		unit, err := checkCurrency(v.input)
+		unit, err := validateCurrency(v.input)
 		if err != nil {
 			t.Fatalf("Failed at test case: %d, error: %q", i+1, err.Error())
 		}
@@ -29,7 +29,7 @@ func TestCheckCurrency(t *testing.T) {
 func TestGetCurrencyPrecision(t *testing.T) {
 	type testUnit struct {
 		currency string
-		expected int32
+		expected int
 	}
 	testCases := []testUnit{
 		{VND, 0},

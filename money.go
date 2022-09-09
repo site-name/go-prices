@@ -2,6 +2,7 @@ package goprices
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/site-name/decimal"
 )
@@ -12,11 +13,19 @@ type Money struct {
 	Currency string
 }
 
+var (
+	_ Currencyable           = (*Money)(nil)
+	_ MoneyInterface[*Money] = (*Money)(nil)
+)
+
 // NewMoney returns new Money object
 func NewMoney(amount float64, currency string) (*Money, error) {
-	unit, err := checkCurrency(currency)
+	unit, err := validateCurrency(currency)
 	if err != nil {
 		return nil, err
+	}
+	if amount < 0 {
+		return nil, ErrMoneyNegative
 	}
 	return &Money{
 		Amount:   decimal.NewFromFloat(amount),
@@ -36,90 +45,68 @@ func (m *Money) MyCurrency() string {
 
 // LessThan checks if other's amount is greater than m's amount
 // AND checking same currency included
-func (m *Money) LessThan(other *Money) (bool, error) {
-	if err := m.SameKind(other); err != nil {
-		return false, err
-	}
-	return m.Amount.LessThan(other.Amount), nil
+func (m *Money) LessThan(other *Money) bool {
+	return m.SameKind(other) && m.Amount.LessThan(other.Amount)
 }
 
 // Equal checks if other's amount is equal to m's amount
-func (m *Money) Equal(other *Money) (bool, error) {
-	if err := m.SameKind(other); err != nil {
-		return false, err
-	}
-	return m.Amount.Equal(other.Amount), nil
+func (m *Money) Equal(other *Money) bool {
+	return m.SameKind(other) && m.Amount.Equal(other.Amount)
 }
 
 // LessThanOrEqual check if m's amount is less than or equal to other's amount
-func (m *Money) LessThanOrEqual(other *Money) (bool, error) {
-	if err := m.SameKind(other); err != nil {
-		return false, err
-	}
-
-	return m.Amount.LessThanOrEqual(other.Amount), nil
+func (m *Money) LessThanOrEqual(other *Money) bool {
+	return m.LessThan(other) || m.Equal(other)
 }
 
-// Mul multiplty money with the givent other.
+// Mul multiplty current money with the givent other.
 //
-// NOTE: other must be either `int` or `float64` or `Decimal`
+// NOTE: other must be either ints or floats or Decimal
 func (m *Money) Mul(other interface{}) (*Money, error) {
-	switch t := other.(type) {
-	case int:
-		return &Money{
-			Amount:   m.Amount.Mul(decimal.NewFromInt32(int32(t))),
-			Currency: m.Currency,
-		}, nil
-
-	case float64:
-		return &Money{
-			Amount:   m.Amount.Mul(decimal.NewFromFloat(t)),
-			Currency: m.Currency,
-		}, nil
-
-	case decimal.Decimal:
-		return &Money{
-			Amount:   m.Amount.Mul(t),
-			Currency: m.Currency,
-		}, nil
-
-	default:
-		return nil, ErrUnknownType
+	if other == nil {
+		return nil, ErrNillValue
 	}
-}
 
-// TrueDiv divides money with the given other.
-//
-// NOTE: other must be either `*Money` or `int` or `float64` or `Decimal`
-func (m *Money) TrueDiv(other interface{}) (*Money, error) {
 	res := &Money{
 		Currency: m.Currency,
 	}
+	valueOf := reflect.ValueOf(other)
 
-	switch t := other.(type) {
-	case int:
-		if t == 0 {
-			return nil, ErrDivisorNotZero
+	switch valueOf.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		t := valueOf.Int()
+		if t < 0 {
+			return nil, ErrMoneyNegative
 		}
-		res.Amount = m.Amount.Div(decimal.NewFromInt32(int32(t)))
+		res.Amount = m.Amount.Mul(decimal.NewFromInt(t))
 
-	case float64:
-		res.Amount = m.Amount.Div(decimal.NewFromFloat(t))
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		res.Amount = m.Amount.Mul(decimal.NewFromInt(int64(valueOf.Uint())))
 
-	case *Money:
-		if t.Amount.IsZero() {
-			return nil, ErrDivisorNotZero
+	case reflect.Float32, reflect.Float64:
+		t := valueOf.Float()
+		if t < 0 {
+			return nil, ErrMoneyNegative
 		}
-		if err := m.SameKind(t); err != nil {
-			return nil, err
-		}
-		res.Amount = m.Amount.Div(t.Amount)
+		res.Amount = m.Amount.Mul(decimal.NewFromFloat(t))
 
-	case decimal.Decimal:
-		if t.IsZero() {
-			return nil, ErrDivisorNotZero
+	case reflect.Pointer, reflect.Struct: // for Decimal and *Decimal
+		var (
+			decimalPointer *decimal.Decimal
+
+			deci, ok1    = other.(decimal.Decimal)
+			deciPtr, ok2 = other.(*decimal.Decimal)
+		)
+
+		if ok1 {
+			decimalPointer = &deci
+		} else if ok2 {
+			decimalPointer = deciPtr
+		} else {
+			return nil, ErrUnknownType
 		}
-		res.Amount = m.Amount.Div(t)
+
+		res.Amount = m.Amount.Mul(*decimalPointer)
 
 	default:
 		return nil, ErrUnknownType
@@ -128,24 +115,123 @@ func (m *Money) TrueDiv(other interface{}) (*Money, error) {
 	return res, nil
 }
 
-// Add adds two money amount together, returns new money
-func (m *Money) Add(other *Money) (*Money, error) {
-	if err := m.SameKind(other); err != nil {
-		return nil, err
+// TrueDiv divides money with the given other.
+//
+// NOTE: other must be either ints or uints or floats or Decimal or Money
+func (m *Money) TrueDiv(other interface{}) (*Money, error) {
+	if other == nil {
+		return nil, ErrNillValue
+	}
+
+	res := &Money{
+		Currency: m.Currency,
+	}
+	valueOf := reflect.ValueOf(other)
+
+	switch valueOf.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		t := valueOf.Int()
+		if t == 0 {
+			return nil, ErrDivisorZero
+		} else if t < 0 {
+			return nil, ErrMoneyNegative
+		}
+		res.Amount = m.Amount.Div(decimal.NewFromInt(t))
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		t := valueOf.Uint()
+		if t == 0 {
+			return nil, ErrDivisorZero
+		}
+		res.Amount = m.Amount.Div(decimal.NewFromInt(int64(t)))
+
+	case reflect.Float32, reflect.Float64:
+		t := valueOf.Float()
+		if t == 0 {
+			return nil, ErrDivisorZero
+		} else if t < 0 {
+			return nil, ErrMoneyNegative
+		}
+		res.Amount = m.Amount.Div(decimal.NewFromFloat(t))
+
+	case reflect.Pointer, reflect.Struct:
+		var (
+			decimalValue decimal.Decimal
+			moneyPointer *Money
+
+			mony, ok1    = other.(Money)
+			monyPtr, ok2 = other.(*Money) // nil value checked above
+
+			deci, ok3    = other.(decimal.Decimal)
+			deciPtr, ok4 = other.(*decimal.Decimal) // nil value checked above
+		)
+
+		if ok1 {
+			decimalValue = mony.Amount
+			moneyPointer = &mony
+		} else if ok2 {
+			decimalValue = monyPtr.Amount
+			moneyPointer = monyPtr
+		} else if ok3 {
+			decimalValue = deci
+		} else if ok4 {
+			decimalValue = *deciPtr
+		} else { // both are false
+			return nil, ErrUnknownType
+		}
+
+		if moneyPointer != nil && !m.SameKind(moneyPointer) {
+			return nil, ErrNotSameCurrency
+		}
+		if decimalValue.IsZero() {
+			return nil, ErrDivisorZero
+		}
+		if decimalValue.IsNegative() {
+			return nil, ErrMoneyNegative
+		}
+		res.Amount = res.Amount.Div(decimalValue)
+
+	default:
+		return nil, ErrUnknownType
+	}
+
+	return res, nil
+}
+
+// Add adds two money amount together, returns new money.
+// If returned error is not nil, it could be ErrNotSameCurrency
+func (m *Money) Add(other any) (*Money, error) {
+	if other == nil {
+		return nil, ErrNillValue
+	}
+	mony, ok := other.(*Money)
+	if !ok {
+		return nil, ErrUnknownType
+	}
+	if !m.SameKind(mony) {
+		return nil, ErrNotSameCurrency
 	}
 	return &Money{
-		m.Amount.Add(other.Amount),
+		m.Amount.Add(mony.Amount),
 		m.Currency,
 	}, nil
 }
 
-// Sub subtracts currenct money to given `money`
-func (m *Money) Sub(other *Money) (*Money, error) {
-	if err := m.SameKind(other); err != nil {
-		return nil, err
+// Sub subtracts current money to given other.
+// If error is not nil, it could be ErrNotSameCurrency
+func (m *Money) Sub(other any) (*Money, error) {
+	if other == nil {
+		return nil, ErrNillValue
+	}
+	mony, ok := other.(*Money)
+	if !ok {
+		return nil, ErrUnknownType
+	}
+	if !m.SameKind(mony) {
+		return nil, ErrNotSameCurrency
 	}
 	return &Money{
-		m.Amount.Sub(other.Amount),
+		m.Amount.Sub(mony.Amount),
 		m.Currency,
 	}, nil
 }
@@ -163,9 +249,9 @@ func (m *Money) Sub(other *Money) (*Money, error) {
 // Otherwise the resulting exponent will be set to the correct exponent
 // of the currency if it's known and to default (two decimal places)
 // otherwise.
-func (m *Money) Quantize(exp *int32, round Rounding) (*Money, error) {
+func (m *Money) Quantize(exp *int, round Rounding) (*Money, error) {
 	var (
-		precision int32
+		precision int
 		err       error
 	)
 
@@ -195,14 +281,14 @@ func (m *Money) Quantize(exp *int32, round Rounding) (*Money, error) {
 	}
 
 	return &Money{
-		Amount:   roundFunc(precision),
+		Amount:   roundFunc(int32(precision)),
 		Currency: m.Currency,
 	}, nil
 }
 
 // Apply a fixed discount to Money type.
 func (m *Money) FixedDiscount(discount *Money) (*Money, error) {
-	sub, err := m.Sub(discount) // same currencies check included
+	sub, err := m.Sub(discount)
 	if err != nil {
 		return nil, err
 	}

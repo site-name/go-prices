@@ -2,6 +2,8 @@ package goprices
 
 import (
 	"fmt"
+
+	"github.com/site-name/decimal"
 )
 
 type TaxedMoneyRange struct {
@@ -10,23 +12,30 @@ type TaxedMoneyRange struct {
 	Currency string
 }
 
+var (
+	_ Currencyable                     = (*TaxedMoneyRange)(nil)
+	_ MoneyInterface[*TaxedMoneyRange] = (*TaxedMoneyRange)(nil)
+)
+
 // NewTaxedMoneyRange create new taxed money range.
 // It returns nil and error value if start > stop or they have different currencies
 func NewTaxedMoneyRange(start, stop *TaxedMoney) (*TaxedMoneyRange, error) {
-	_, err := checkCurrency(start.Currency)
+	if start == nil || stop == nil {
+		return nil, ErrNillValue
+	}
+	_, err := validateCurrency(start.Currency)
 	if err != nil {
 		return nil, err
 	}
-	unit, err := checkCurrency(stop.Currency)
+	unit, err := validateCurrency(stop.Currency)
 	if err != nil {
 		return nil, err
+	}
+	if start.Net.Amount.LessThan(decimal.Zero) || stop.Gross.Amount.LessThan(decimal.Zero) {
+		return nil, ErrMoneyNegative
 	}
 
-	less, err := stop.LessThan(start)
-	if err != nil {
-		return nil, err
-	}
-	if less {
+	if stop.LessThan(start) {
 		return nil, ErrStopLessThanStart
 	}
 
@@ -82,8 +91,13 @@ func (t *TaxedMoneyRange) Add(other interface{}) (*TaxedMoneyRange, error) {
 	}
 }
 
-// Sub substract this taxed money range to a money, money range or taxed money range
+// Sub substract this taxed money range to given other.
+// other must be either *Money or *TaxedMoney or *MoneyRange or *TaxedMoneyRange
 func (t *TaxedMoneyRange) Sub(other interface{}) (*TaxedMoneyRange, error) {
+	if other == nil {
+		return nil, ErrNillValue
+	}
+
 	switch v := other.(type) {
 	case *Money, *TaxedMoney:
 		start, err := t.Start.Sub(v)
@@ -95,6 +109,7 @@ func (t *TaxedMoneyRange) Sub(other interface{}) (*TaxedMoneyRange, error) {
 			return nil, err
 		}
 		return &TaxedMoneyRange{start, stop, t.Currency}, nil
+
 	case *MoneyRange:
 		start, err := t.Start.Sub(v.Start)
 		if err != nil {
@@ -105,6 +120,7 @@ func (t *TaxedMoneyRange) Sub(other interface{}) (*TaxedMoneyRange, error) {
 			return nil, err
 		}
 		return &TaxedMoneyRange{start, stop, t.Currency}, nil
+
 	case *TaxedMoneyRange:
 		start, err := t.Start.Sub(v.Start)
 		if err != nil {
@@ -115,71 +131,38 @@ func (t *TaxedMoneyRange) Sub(other interface{}) (*TaxedMoneyRange, error) {
 			return nil, err
 		}
 		return &TaxedMoneyRange{start, stop, t.Currency}, nil
+
 	default:
 		return nil, ErrUnknownType
 	}
 }
 
 // Equal compares two taxed money range
-func (t *TaxedMoneyRange) Equal(other *TaxedMoneyRange) (bool, error) {
-	eq1, err := t.Start.Equal(other.Start)
-	if err != nil {
-		return false, err
-	}
-	eq2, err := t.Stop.Equal(other.Stop)
-	if err != nil {
-		return false, err
-	}
-	return eq1 && eq2, nil
+func (t *TaxedMoneyRange) Equal(other *TaxedMoneyRange) bool {
+	return t.Start.Equal(other.Start) && t.Stop.Equal(other.Stop)
 }
 
 // LessThan checks if current taxed money range less than given other
-func (t *TaxedMoneyRange) LessThan(other *TaxedMoneyRange) (bool, error) {
-	l1, err := t.Start.LessThan(other.Start)
-	if err != nil {
-		return false, err
-	}
-	l2, err := t.Stop.LessThan(other.Stop)
-	if err != nil {
-		return false, err
-	}
-
-	return l1 && l2, nil
+func (t *TaxedMoneyRange) LessThan(other *TaxedMoneyRange) bool {
+	return t.Start.LessThan(other.Start) && t.Stop.LessThan(other.Stop)
 }
 
 // LessThanOrEqual checks if current taxed money range less than or equal to given other
-func (t *TaxedMoneyRange) LessThanOrEqual(other *TaxedMoneyRange) (bool, error) {
-	less, err := t.LessThan(other)
-	if err != nil {
-		return false, err
-	}
-	equal, err := t.Equal(other)
-	if err != nil {
-		return false, err
-	}
-
-	return less || equal, nil
+func (t *TaxedMoneyRange) LessThanOrEqual(other *TaxedMoneyRange) bool {
+	return t.LessThan(other) || t.Equal(other)
 }
 
 // Contains check is given taxed money is in range from start to stop.
 //
-//start <= item <= stop
-func (t *TaxedMoneyRange) Contains(item *TaxedMoney) (bool, error) {
-	greaterThanStart, err := t.Start.LessThanOrEqual(item)
-	if err != nil {
-		return false, err
-	}
-	lessThanStop, err := item.LessThanOrEqual(t.Stop)
-	if err != nil {
-		return false, err
-	}
-	return greaterThanStart && lessThanStop, nil
+// start <= item <= stop
+func (t *TaxedMoneyRange) Contains(item *TaxedMoney) bool {
+	return t.Start.LessThanOrEqual(item) && item.LessThanOrEqual(t.Stop)
 }
 
 // Return a copy of the range with start and stop quantized.
 // All arguments are passed to `TaxedMoney.quantize` which in turn calls
 // `Money.quantize
-func (t *TaxedMoneyRange) Quantize(exp *int32, round Rounding) (*TaxedMoneyRange, error) {
+func (t *TaxedMoneyRange) Quantize(exp *int, round Rounding) (*TaxedMoneyRange, error) {
 	start, err := t.Start.Quantize(exp, round)
 	if err != nil {
 		return nil, err
@@ -218,4 +201,12 @@ func (t *TaxedMoneyRange) FixedDiscount(discount *Money) (*TaxedMoneyRange, erro
 		return nil, err
 	}
 	return NewTaxedMoneyRange(baseStart, baseStop)
+}
+
+func (t *TaxedMoneyRange) Mul(other any) (*TaxedMoneyRange, error) {
+	panic("not implemented")
+}
+
+func (t *TaxedMoneyRange) TrueDiv(other any) (*TaxedMoneyRange, error) {
+	panic("not implemented")
 }

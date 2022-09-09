@@ -6,25 +6,23 @@ import (
 	"golang.org/x/text/currency"
 )
 
-// checkCurrency checks if given `currencyCode` is valid or not by:
-//
-// Checking if the money is valid by parsing
-func checkCurrency(currencyCode string) (string, error) {
+// validateCurrency checks if given `currencyCode` is valid or not.
+// When it is not, returns empty string and ErrUnknownCurrency
+func validateCurrency(currencyCode string) (string, error) {
 	unit, err := currency.ParseISO(currencyCode)
 	if err != nil {
-		return "", err
+		return "", ErrUnknownCurrency
 	}
 	return unit.String(), nil
 }
 
-// SameKind checks if other's `Currency` is identical to m's `Currency`
-//
-// Returned error could be either `nil` or `ErrNotSameCurrency`
-func (m *Money) SameKind(other *Money) error {
-	if !strings.EqualFold(m.Currency, other.Currency) {
-		return ErrNotSameCurrency
+// SameKind checks if other's currency is identical to current money currency.
+// If other is nil, returns false.
+func (m *Money) SameKind(other *Money) bool {
+	if other == nil {
+		return false
 	}
-	return nil
+	return strings.EqualFold(m.Currency, other.Currency)
 }
 
 // GetCurrencyPrecision returns a number for money rounding.
@@ -32,9 +30,10 @@ func (m *Money) SameKind(other *Money) error {
 // Returned error could be `nil` or `ErrUnknownCurrency`
 //
 // E.g:
-//  GetCurrencyPrecision("vnd") => 0, nil
-func GetCurrencyPrecision(currency string) (int32, error) {
-	currencyCode, err := checkCurrency(currency)
+//
+//	GetCurrencyPrecision("vnd") => 0, nil
+func GetCurrencyPrecision(currency string) (int, error) {
+	currencyCode, err := validateCurrency(currency)
 	if err != nil {
 		return 0, err
 	}
@@ -45,6 +44,6 @@ func GetCurrencyPrecision(currency string) (int32, error) {
 	return c.Fraction, nil
 }
 
-func newInt32(in int32) *int32 {
+func newInt(in int) *int {
 	return &in
 }

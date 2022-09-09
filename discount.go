@@ -10,49 +10,22 @@ import "github.com/site-name/decimal"
 //
 // the returned interface's type should be identical to given base's type
 func FixedDiscount(base interface{}, discount *Money) (interface{}, error) {
+	if base == nil {
+		return nil, ErrNillValue
+	}
+
 	switch value := base.(type) {
 	case *MoneyRange:
-		start, err := FixedDiscount(value.Start, discount)
-		if err != nil {
-			return nil, err
-		}
-		stop, err := FixedDiscount(value.Stop, discount)
-		if err != nil {
-			return nil, err
-		}
-		return NewMoneyRange(start.(*Money), stop.(*Money))
+		return value.FixedDiscount(discount)
 
 	case *TaxedMoneyRange:
-		start, err := FixedDiscount(value.Start, discount)
-		if err != nil {
-			return nil, err
-		}
-		stop, err := FixedDiscount(value.Stop, discount)
-		if err != nil {
-			return nil, err
-		}
-		return NewTaxedMoneyRange(start.(*TaxedMoney), stop.(*TaxedMoney))
+		return value.FixedDiscount(discount)
 
 	case *TaxedMoney:
-		net, err := FixedDiscount(value.Net, discount)
-		if err != nil {
-			return nil, err
-		}
-		gross, err := FixedDiscount(value.Gross, discount)
-		if err != nil {
-			return nil, err
-		}
-		return NewTaxedMoney(net.(*Money), gross.(*Money))
+		return value.FixedDiscount(discount)
 
 	case *Money:
-		baseSubDiscount, err := value.Sub(discount)
-		if err != nil {
-			return nil, err
-		}
-		if baseSubDiscount.Amount.GreaterThan(decimal.Zero) {
-			return baseSubDiscount, nil
-		}
-		return NewMoney(0, value.Currency)
+		return value.FixedDiscount(discount)
 
 	default:
 		return nil, ErrUnknownType

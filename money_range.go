@@ -1,13 +1,9 @@
 package goprices
 
 import (
-	"errors"
 	"fmt"
-)
 
-var (
-	// ErrStopLessThanStart is used when input stop money less than input start money
-	ErrStopLessThanStart = errors.New("stop must be greater than start")
+	"github.com/site-name/decimal"
 )
 
 // MoneyRange has start and stop ends
@@ -17,23 +13,32 @@ type MoneyRange struct {
 	Currency string
 }
 
+var (
+	_ Currencyable                = (*MoneyRange)(nil)
+	_ MoneyInterface[*MoneyRange] = (*MoneyRange)(nil)
+)
+
 // NewMoneyRange returns a new range. If start is greater than stop or start and stop have different
 // currencies, return nil and non nil error
 func NewMoneyRange(start, stop *Money) (*MoneyRange, error) {
-	_, err := checkCurrency(start.Currency)
-	if err != nil {
-		return nil, fmt.Errorf("start has invalid currency: %w", err)
+	if start == nil || stop == nil {
+		return nil, ErrNillValue
 	}
-	unit, err := checkCurrency(stop.Currency)
-	if err != nil {
-		return nil, fmt.Errorf("stop has invalid currency: %w", err)
+	if !start.SameKind(stop) {
+		return nil, ErrNotSameCurrency
 	}
-
-	lessThanOrEqual, err := start.LessThanOrEqual(stop)
+	_, err := validateCurrency(start.Currency)
 	if err != nil {
 		return nil, err
 	}
-	if !lessThanOrEqual {
+	unit, err := validateCurrency(stop.Currency)
+	if err != nil {
+		return nil, err
+	}
+	if start.Amount.LessThan(decimal.Zero) || stop.Amount.LessThan(decimal.Zero) {
+		return nil, ErrMoneyNegative
+	}
+	if !start.LessThanOrEqual(stop) {
 		return nil, ErrStopLessThanStart
 	}
 
@@ -46,7 +51,7 @@ func NewMoneyRange(start, stop *Money) (*MoneyRange, error) {
 
 // String implements fmt.Stringer interface{}
 func (m *MoneyRange) String() string {
-	return fmt.Sprintf("Money{%s, %s}", m.Start.String(), m.Stop.String())
+	return fmt.Sprintf("MoneyRange{%s, %s}", m.Start.String(), m.Stop.String())
 }
 
 // MyCurrency returns current money range's Currency
@@ -54,10 +59,14 @@ func (m *MoneyRange) MyCurrency() string {
 	return m.Currency
 }
 
-// Add adds a Value to current
+// Add adds a Value to current.
 //
-// `other` must be either `*Money` or `*MoneyRange`
+// other must be either *Money or *MoneyRange
 func (m *MoneyRange) Add(other interface{}) (*MoneyRange, error) {
+	if other == nil {
+		return nil, ErrNillValue
+	}
+
 	switch v := other.(type) {
 	case *Money:
 		start, err := m.Start.Add(v)
@@ -89,6 +98,10 @@ func (m *MoneyRange) Add(other interface{}) (*MoneyRange, error) {
 // Sub subtracts current money to given `other`.
 // `other` can be either `*Money` or `*MoneyRange`
 func (m *MoneyRange) Sub(other interface{}) (*MoneyRange, error) {
+	if other == nil {
+		return nil, ErrNillValue
+	}
+
 	switch v := other.(type) {
 	case *Money:
 		start, err := m.Start.Sub(v)
@@ -118,60 +131,28 @@ func (m *MoneyRange) Sub(other interface{}) (*MoneyRange, error) {
 }
 
 // Equal Checks if two MoneyRange are equal both `Start`, `Stop` and `Currency`
-func (m *MoneyRange) Equal(other *MoneyRange) (bool, error) {
-	b1, err := m.Start.Equal(other.Start)
-	if err != nil {
-		return false, err
-	}
-	b2, err := m.Stop.Equal(other.Stop)
-	if err != nil {
-		return false, err
-	}
-	return b1 && b2, err
+func (m *MoneyRange) Equal(other *MoneyRange) bool {
+	return m.Start.Equal(other.Start) && m.Stop.Equal(other.Stop)
 }
 
 // LessThan compares currenct money range to given other
-func (m *MoneyRange) LessThan(other *MoneyRange) (bool, error) {
-	l1, err := m.Start.LessThan(other.Start)
-	if err != nil {
-		return false, err
-	}
-	l2, err := m.Stop.LessThan(other.Stop)
-	if err != nil {
-		return false, err
-	}
-	return l2 && l1, nil
+func (m *MoneyRange) LessThan(other *MoneyRange) bool {
+	return m.Start.LessThan(other.Start) && m.Stop.LessThan(other.Stop)
 }
 
 // LessThanOrEqual checks if current money range is less than or equal given other
-func (m *MoneyRange) LessThanOrEqual(other *MoneyRange) (bool, error) {
-	less, err := m.LessThan(other)
-	if err != nil {
-		return false, err
-	}
-	equal, err := m.Equal(other)
-	if err != nil {
-		return false, err
-	}
-	return less || equal, nil
+func (m *MoneyRange) LessThanOrEqual(other *MoneyRange) bool {
+	return m.LessThan(other) || m.Equal(other)
 }
 
 // Contains check if a Money is between this MoneyRange's two ends
-func (m *MoneyRange) Contains(value *Money) (bool, error) {
-	itemGreaterThanStart, err := m.Start.LessThanOrEqual(value)
-	if err != nil {
-		return false, err
-	}
-	itemLessThanStop, err := value.LessThanOrEqual(m.Stop)
-	if err != nil {
-		return false, err
-	}
-	return itemGreaterThanStart && itemLessThanStop, err
+func (m *MoneyRange) Contains(value *Money) bool {
+	return m.Start.LessThanOrEqual(value) && value.LessThanOrEqual(m.Stop)
 }
 
-//Return a copy of the range with start and stop quantized.
+// Return a copy of the range with start and stop quantized.
 // All arguments are passed to `Money.quantize
-func (m *MoneyRange) Quantize(exp *int32, round Rounding) (*MoneyRange, error) {
+func (m *MoneyRange) Quantize(exp *int, round Rounding) (*MoneyRange, error) {
 	start, err := m.Start.Quantize(exp, round)
 	if err != nil {
 		return nil, err
@@ -209,4 +190,12 @@ func (m *MoneyRange) FixedDiscount(discount *Money) (*MoneyRange, error) {
 		return nil, err
 	}
 	return NewMoneyRange(baseStart, baseStop)
+}
+
+func (m *MoneyRange) Mul(other any) (*MoneyRange, error) {
+	panic("not implemented")
+}
+
+func (m *MoneyRange) TrueDiv(other any) (*MoneyRange, error) {
+	panic("not implemented")
 }
