@@ -9,27 +9,8 @@ import "github.com/site-name/decimal"
 // Returned interface{} can be either *Money, *MoneyRange, *TaxedMoney, *TaxedMoneyRange
 //
 // the returned interface's type should be identical to given base's type
-func FixedDiscount(base interface{}, discount *Money) (interface{}, error) {
-	if base == nil {
-		return nil, ErrNillValue
-	}
-
-	switch value := base.(type) {
-	case *MoneyRange:
-		return value.FixedDiscount(discount)
-
-	case *TaxedMoneyRange:
-		return value.FixedDiscount(discount)
-
-	case *TaxedMoney:
-		return value.FixedDiscount(discount)
-
-	case *Money:
-		return value.FixedDiscount(discount)
-
-	default:
-		return nil, ErrUnknownType
-	}
+func FixedDiscount[K MoneyObject, T MoneyInterface[K]](base T, discount *Money) (K, error) {
+	return base.FixedDiscount(discount)
 }
 
 // FractionalDiscount Apply a fractional discount based on either gross or net amount
@@ -78,7 +59,7 @@ func FractionalDiscount(base interface{}, fraction decimal.Decimal, fromGross bo
 		if err != nil {
 			return nil, err
 		}
-		return FixedDiscount(value, discount)
+		return FixedDiscount[*TaxedMoney](value, discount)
 
 	case *Money:
 		mul, err := value.Mul(fraction)
@@ -89,7 +70,7 @@ func FractionalDiscount(base interface{}, fraction decimal.Decimal, fromGross bo
 		if err != nil {
 			return nil, err
 		}
-		return FixedDiscount(value, discount)
+		return FixedDiscount[*Money](value, discount)
 
 	default:
 		return nil, ErrUnknownType

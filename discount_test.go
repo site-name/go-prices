@@ -8,7 +8,6 @@ import (
 )
 
 func Test_FixedDiscount(t *testing.T) {
-
 	discount, err := NewMoney(23.45, "JPY")
 	if err != nil {
 		t.Fatal(err)
@@ -17,12 +16,12 @@ func Test_FixedDiscount(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	value, err := FixedDiscount(m, discount)
+	value, err := FixedDiscount[*Money](m, discount)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	fmt.Println(value.(*Money))
+	fmt.Println(value)
 }
 
 func Test_FractionalDiscount(t *testing.T) {
