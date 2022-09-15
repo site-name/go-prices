@@ -1,6 +1,10 @@
 package goprices
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/site-name/decimal"
+)
 
 // TaxedMoney represents taxed money. It wraps net, gross money and currency.
 type TaxedMoney struct {
@@ -197,14 +201,32 @@ func (t *TaxedMoney) Quantize(exp *int, round Rounding) (*TaxedMoney, error) {
 }
 
 // Apply a fixed discount to TaxedMoney.
-func (t *TaxedMoney) FixedDiscount(discount *Money) (*TaxedMoney, error) {
-	baseNet, err := t.Net.FixedDiscount(discount)
+func (t *TaxedMoney) fixedDiscount(discount *Money) (*TaxedMoney, error) {
+	baseNet, err := t.Net.fixedDiscount(discount)
 	if err != nil {
 		return nil, err
 	}
-	baseGross, err := t.Gross.FixedDiscount(discount)
+	baseGross, err := t.Gross.fixedDiscount(discount)
 	if err != nil {
 		return nil, err
 	}
 	return NewTaxedMoney(baseNet, baseGross)
+}
+
+func (m *TaxedMoney) fractionalDiscount(fraction decimal.Decimal, fromGross bool) (*TaxedMoney, error) {
+	op := &Money{
+		Currency: m.Currency,
+		Amount:   m.Gross.Amount,
+	}
+	if !fromGross {
+		op.Amount = m.Net.Amount
+	}
+
+	op, _ = op.Mul(fraction)
+	discount, err := op.Quantize(nil, Down)
+	if err != nil {
+		return nil, err
+	}
+
+	return m.fixedDiscount(discount)
 }

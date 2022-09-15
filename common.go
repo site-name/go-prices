@@ -1,6 +1,10 @@
 package goprices
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/site-name/decimal"
+)
 
 type MoneyObject interface {
 	*Money | *MoneyRange | *TaxedMoney | *TaxedMoneyRange
@@ -18,7 +22,8 @@ type MoneyInterface[T MoneyObject] interface {
 	Equal(T) bool
 	LessThan(T) bool
 	LessThanOrEqual(T) bool
-	FixedDiscount(*Money) (T, error)
+	fixedDiscount(discount *Money) (T, error)
+	fractionalDiscount(fraction decimal.Decimal, fromGross bool) (T, error)
 }
 
 // QuantizePrice accepts the `price` argument to be either:

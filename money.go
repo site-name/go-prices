@@ -73,14 +73,18 @@ func (m *Money) Mul(other interface{}) (*Money, error) {
 	valueOf := reflect.ValueOf(other)
 
 	switch valueOf.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+	case reflect.Int, reflect.Int8,
+		reflect.Int16, reflect.Int32,
+		reflect.Int64:
 		t := valueOf.Int()
 		if t < 0 {
 			return nil, ErrMoneyNegative
 		}
 		res.Amount = m.Amount.Mul(decimal.NewFromInt(t))
 
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+	case reflect.Uint, reflect.Uint8,
+		reflect.Uint16, reflect.Uint32,
+		reflect.Uint64:
 		res.Amount = m.Amount.Mul(decimal.NewFromInt(int64(valueOf.Uint())))
 
 	case reflect.Float32, reflect.Float64:
@@ -92,21 +96,17 @@ func (m *Money) Mul(other interface{}) (*Money, error) {
 
 	case reflect.Pointer, reflect.Struct: // for Decimal and *Decimal
 		var (
-			decimalPointer *decimal.Decimal
-
 			deci, ok1    = other.(decimal.Decimal)
-			deciPtr, ok2 = other.(*decimal.Decimal)
+			deciPtr, ok2 = other.(*decimal.Decimal) // null pointer catched above
 		)
 
-		if ok1 {
-			decimalPointer = &deci
-		} else if ok2 {
-			decimalPointer = deciPtr
-		} else {
+		if !(ok1 || ok2) {
 			return nil, ErrUnknownType
 		}
-
-		res.Amount = m.Amount.Mul(*decimalPointer)
+		if ok2 {
+			deci = *deciPtr
+		}
+		res.Amount = m.Amount.Mul(deci)
 
 	default:
 		return nil, ErrUnknownType
@@ -255,7 +255,7 @@ func (m *Money) Quantize(exp *int, round Rounding) (*Money, error) {
 		err       error
 	)
 
-	if exp != nil {
+	if exp != nil && *exp != 0 {
 		precision = *exp
 	} else {
 		precision, err = GetCurrencyPrecision(m.Currency)
@@ -264,30 +264,28 @@ func (m *Money) Quantize(exp *int, round Rounding) (*Money, error) {
 		}
 	}
 
-	var roundFunc RoundFunc = nil
-
+	money := &Money{
+		Currency: m.Currency,
+	}
 	switch round {
 	case Up:
-		roundFunc = m.Amount.RoundUp
+		money.Amount = m.Amount.RoundUp(int32(precision))
 	case Down:
-		roundFunc = m.Amount.RoundDown
+		money.Amount = m.Amount.RoundDown(int32(precision))
 	case Ceil:
-		roundFunc = m.Amount.RoundCeil
+		money.Amount = m.Amount.RoundCeil(int32(precision))
 	case Floor:
-		roundFunc = m.Amount.RoundFloor
+		money.Amount = m.Amount.RoundFloor(int32(precision))
 
 	default:
 		return nil, ErrInvalidRounding
 	}
 
-	return &Money{
-		Amount:   roundFunc(int32(precision)),
-		Currency: m.Currency,
-	}, nil
+	return money, nil
 }
 
 // Apply a fixed discount to Money type.
-func (m *Money) FixedDiscount(discount *Money) (*Money, error) {
+func (m *Money) fixedDiscount(discount *Money) (*Money, error) {
 	sub, err := m.Sub(discount)
 	if err != nil {
 		return nil, err
@@ -301,4 +299,17 @@ func (m *Money) FixedDiscount(discount *Money) (*Money, error) {
 		Currency: m.Currency,
 		Amount:   decimal.Zero,
 	}, nil
+}
+
+func (m *Money) fractionalDiscount(fraction decimal.Decimal, _ bool) (*Money, error) {
+	mul, err := m.Mul(fraction)
+	if err != nil {
+		return nil, err
+	}
+	mul, err = mul.Quantize(nil, Down)
+	if err != nil {
+		return nil, err
+	}
+
+	return m.fixedDiscount(mul)
 }

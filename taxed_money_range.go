@@ -191,12 +191,12 @@ func (t *TaxedMoneyRange) Replace(start, stop *TaxedMoney) (*TaxedMoneyRange, er
 }
 
 // Apply a fixed discount to TaxedMoneyRange.
-func (t *TaxedMoneyRange) FixedDiscount(discount *Money) (*TaxedMoneyRange, error) {
-	baseStart, err := t.Start.FixedDiscount(discount)
+func (t *TaxedMoneyRange) fixedDiscount(discount *Money) (*TaxedMoneyRange, error) {
+	baseStart, err := t.Start.fixedDiscount(discount)
 	if err != nil {
 		return nil, err
 	}
-	baseStop, err := t.Stop.FixedDiscount(discount)
+	baseStop, err := t.Stop.fixedDiscount(discount)
 	if err != nil {
 		return nil, err
 	}
@@ -209,4 +209,18 @@ func (t *TaxedMoneyRange) Mul(other any) (*TaxedMoneyRange, error) {
 
 func (t *TaxedMoneyRange) TrueDiv(other any) (*TaxedMoneyRange, error) {
 	panic("not implemented")
+}
+
+func (m *TaxedMoneyRange) fractionalDiscount(fraction decimal.Decimal, fromGross bool) (*TaxedMoneyRange, error) {
+	start, err := m.Start.fractionalDiscount(fraction, fromGross)
+	if err != nil {
+		return nil, err
+	}
+
+	stop, err := m.Stop.fractionalDiscount(fraction, fromGross)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewTaxedMoneyRange(start, stop)
 }
