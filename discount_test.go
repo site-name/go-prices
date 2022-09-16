@@ -16,7 +16,7 @@ func Test_FixedDiscount(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	value, err := fixedDiscount[*Money](m, discount)
+	value, err := FixedDiscount[*Money](m, discount)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -30,7 +30,7 @@ func Test_FractionalDiscount(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	m, err = fractionalDiscount[*Money](m, decimal.NewFromFloat(0.2), false)
+	m, err = FractionalDiscount[*Money](m, decimal.NewFromFloat(0.2), false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +51,7 @@ func Test_FractionalDiscount(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	iface, err := fractionalDiscount[*MoneyRange](mRange, decimal.NewFromFloat(0.135), true)
+	iface, err := FractionalDiscount[*MoneyRange](mRange, decimal.NewFromFloat(0.135), true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +64,7 @@ func Test_PercentageDiscount(t *testing.T) {
 		Amount:   decimal.NewFromFloat(566.64),
 		Currency: "usd",
 	}
-	vl, err := percentageDiscount[*Money](m, 50.0, true)
+	vl, err := PercentageDiscount[*Money](m, 50.0, true)
 	if err != nil {
 		t.Fatal(err)
 	}

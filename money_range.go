@@ -62,7 +62,7 @@ func (m *MoneyRange) MyCurrency() string {
 // Add adds a Value to current.
 //
 // other must be either *Money or *MoneyRange
-func (m *MoneyRange) Add(other interface{}) (*MoneyRange, error) {
+func (m *MoneyRange) Add(other any) (*MoneyRange, error) {
 	if other == nil {
 		return nil, ErrNillValue
 	}
