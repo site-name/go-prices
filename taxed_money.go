@@ -68,55 +68,27 @@ func (t *TaxedMoney) LessThanOrEqual(other *TaxedMoney) bool {
 // Mul multiplies current taxed money with given other
 //
 // other must only be either ints or floats or Decimal
-func (m *TaxedMoney) Mul(other interface{}) (*TaxedMoney, error) {
-	if other == nil {
-		return nil, ErrNillValue
-	}
-
-	net, err := m.Net.Mul(other)
-	if err != nil {
-		return nil, err
-	}
-	gross, err := m.Gross.Mul(other)
-	if err != nil {
-		return nil, err
-	}
-
+func (m *TaxedMoney) Mul(other float64) *TaxedMoney {
 	return &TaxedMoney{
-		Net:      net,
-		Gross:    gross,
+		Net:      m.Net.Mul(other),
+		Gross:    m.Gross.Mul(other),
 		Currency: m.Currency,
-	}, nil
+	}
 }
 
 // TrueDiv divides current tabled money to other.
 // other must be either Decimal or ints or floats
-func (t *TaxedMoney) TrueDiv(other interface{}) (*TaxedMoney, error) {
-	var (
-		newNet   *Money
-		newGross *Money
-		err      error
-	)
-
-	newNet, err = t.Net.TrueDiv(other)
-	if err != nil {
-		return nil, err
-	}
-	newGross, err = t.Gross.TrueDiv(other)
-	if err != nil {
-		return nil, err
-	}
-
+func (t *TaxedMoney) TrueDiv(other float64) *TaxedMoney {
 	return &TaxedMoney{
-		Gross:    newGross,
-		Net:      newNet,
+		Gross:    t.Gross.TrueDiv(other),
+		Net:      t.Net.TrueDiv(other),
 		Currency: t.Currency,
-	}, nil
+	}
 }
 
 // Add adds a money or taxed money to this.
 // other must be either *Money or *TaxedMoney
-func (t *TaxedMoney) Add(other interface{}) (*TaxedMoney, error) {
+func (t *TaxedMoney) Add(other any) (*TaxedMoney, error) {
 	switch v := other.(type) {
 	case *Money:
 		net, err := t.Net.Add(v)
@@ -147,7 +119,7 @@ func (t *TaxedMoney) Add(other interface{}) (*TaxedMoney, error) {
 
 // Add substract this money to other.
 // other must be either *Money or *TaxedMoney.
-func (t *TaxedMoney) Sub(other interface{}) (*TaxedMoney, error) {
+func (t *TaxedMoney) Sub(other any) (*TaxedMoney, error) {
 	switch v := other.(type) {
 	case *Money:
 		net, err := t.Net.Sub(v)
@@ -177,18 +149,19 @@ func (t *TaxedMoney) Sub(other interface{}) (*TaxedMoney, error) {
 }
 
 // Tax calculates taxed money by subtracting m's gross to m's net
-func (t *TaxedMoney) Tax() (*Money, error) {
-	return t.Gross.Sub(t.Net)
+func (t *TaxedMoney) Tax() *Money {
+	tax, _ := t.Gross.Sub(t.Net)
+	return tax
 }
 
 // Return a new instance with both net and gross quantized.
 // All arguments are passed to `Money.quantize
-func (t *TaxedMoney) Quantize(exp *int, round Rounding) (*TaxedMoney, error) {
-	net, err := t.Net.Quantize(exp, round)
+func (t *TaxedMoney) Quantize(round Rounding, exp int) (*TaxedMoney, error) {
+	net, err := t.Net.Quantize(round, exp)
 	if err != nil {
 		return nil, err
 	}
-	gross, err := t.Gross.Quantize(exp, round)
+	gross, err := t.Gross.Quantize(round, exp)
 	if err != nil {
 		return nil, err
 	}
@@ -222,8 +195,8 @@ func (m *TaxedMoney) fractionalDiscount(fraction decimal.Decimal, fromGross bool
 		op.Amount = m.Net.Amount
 	}
 
-	op, _ = op.Mul(fraction)
-	discount, err := op.Quantize(nil, Down)
+	op = op.Mul(fraction.InexactFloat64())
+	discount, err := op.Quantize(Down, -1)
 	if err != nil {
 		return nil, err
 	}

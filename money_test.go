@@ -15,12 +15,8 @@ func TestTrueDiv(t *testing.T) {
 	if m == nil {
 		t.Fatal("Error creating new money")
 	}
-	newMoney, err := m.TrueDiv(22.34)
-	if err != nil {
-		t.Fatal(err)
-	} else {
-		fmt.Println(newMoney)
-	}
+	newMoney := m.TrueDiv(22.34)
+	fmt.Println(newMoney)
 }
 
 func TestMul(t *testing.T) {
@@ -31,12 +27,8 @@ func TestMul(t *testing.T) {
 	if m == nil {
 		t.Fatal("Error creating new money")
 	}
-	newMoney, err := m.Mul(22.34)
-	if err != nil {
-		t.Fatal(err)
-	} else {
-		fmt.Println(newMoney)
-	}
+	newMoney := m.Mul(22.34)
+	fmt.Println(newMoney)
 }
 
 func TestEqual(t *testing.T) {
@@ -63,7 +55,7 @@ func TestQuantize(t *testing.T) {
 
 	fmt.Println(m1)
 
-	m2, err := m1.Quantize(newInt(4), Up)
+	m2, err := m1.Quantize(Up, -1)
 	if err != nil {
 		t.Fatal(err)
 	}

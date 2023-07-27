@@ -61,7 +61,7 @@ func Test_FractionalDiscount(t *testing.T) {
 
 func Test_PercentageDiscount(t *testing.T) {
 	m := &Money{
-		Amount:   decimal.NewFromFloat(566.64),
+		Amount:   decimal.NewFromFloat(566.63),
 		Currency: "usd",
 	}
 	vl, err := PercentageDiscount[*Money](m, 50.0, true)

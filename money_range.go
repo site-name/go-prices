@@ -49,7 +49,7 @@ func NewMoneyRange(start, stop *Money) (*MoneyRange, error) {
 	}, nil
 }
 
-// String implements fmt.Stringer interface{}
+// String implements fmt.Stringer any
 func (m *MoneyRange) String() string {
 	return fmt.Sprintf("MoneyRange{%s, %s}", m.Start.String(), m.Stop.String())
 }
@@ -97,7 +97,7 @@ func (m *MoneyRange) Add(other any) (*MoneyRange, error) {
 
 // Sub subtracts current money to given `other`.
 // `other` can be either `*Money` or `*MoneyRange`
-func (m *MoneyRange) Sub(other interface{}) (*MoneyRange, error) {
+func (m *MoneyRange) Sub(other any) (*MoneyRange, error) {
 	if other == nil {
 		return nil, ErrNillValue
 	}
@@ -151,13 +151,13 @@ func (m *MoneyRange) Contains(value *Money) bool {
 }
 
 // Return a copy of the range with start and stop quantized.
-// All arguments are passed to `Money.quantize
-func (m *MoneyRange) Quantize(exp *int, round Rounding) (*MoneyRange, error) {
-	start, err := m.Start.Quantize(exp, round)
+// NOTE: if exp < 0 the system will use default
+func (m *MoneyRange) Quantize(round Rounding, exp int) (*MoneyRange, error) {
+	start, err := m.Start.Quantize(round, exp)
 	if err != nil {
 		return nil, err
 	}
-	stop, err := m.Stop.Quantize(exp, round)
+	stop, err := m.Stop.Quantize(round, exp)
 	if err != nil {
 		return nil, err
 	}
@@ -192,12 +192,20 @@ func (m *MoneyRange) fixedDiscount(discount *Money) (*MoneyRange, error) {
 	return NewMoneyRange(baseStart, baseStop)
 }
 
-func (m *MoneyRange) Mul(other any) (*MoneyRange, error) {
-	panic("not implemented")
+func (m *MoneyRange) Mul(other float64) *MoneyRange {
+	return &MoneyRange{
+		Start:    m.Start.Mul(other),
+		Stop:     m.Start.Mul(other),
+		Currency: m.Currency,
+	}
 }
 
-func (m *MoneyRange) TrueDiv(other any) (*MoneyRange, error) {
-	panic("not implemented")
+func (m *MoneyRange) TrueDiv(other float64) *MoneyRange {
+	return &MoneyRange{
+		Start:    m.Start.TrueDiv(other),
+		Stop:     m.Start.TrueDiv(other),
+		Currency: m.Currency,
+	}
 }
 
 func (m *MoneyRange) fractionalDiscount(fraction decimal.Decimal, fromGross bool) (*MoneyRange, error) {

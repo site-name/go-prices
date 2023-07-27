@@ -160,14 +160,13 @@ func (t *TaxedMoneyRange) Contains(item *TaxedMoney) bool {
 }
 
 // Return a copy of the range with start and stop quantized.
-// All arguments are passed to `TaxedMoney.quantize` which in turn calls
-// `Money.quantize
-func (t *TaxedMoneyRange) Quantize(exp *int, round Rounding) (*TaxedMoneyRange, error) {
-	start, err := t.Start.Quantize(exp, round)
+// NOTE: if exp < 0; default will be used
+func (t *TaxedMoneyRange) Quantize(round Rounding, exp int) (*TaxedMoneyRange, error) {
+	start, err := t.Start.Quantize(round, exp)
 	if err != nil {
 		return nil, err
 	}
-	stop, err := t.Stop.Quantize(exp, round)
+	stop, err := t.Stop.Quantize(round, exp)
 	if err != nil {
 		return nil, err
 	}
@@ -203,12 +202,20 @@ func (t *TaxedMoneyRange) fixedDiscount(discount *Money) (*TaxedMoneyRange, erro
 	return NewTaxedMoneyRange(baseStart, baseStop)
 }
 
-func (t *TaxedMoneyRange) Mul(other any) (*TaxedMoneyRange, error) {
-	panic("not implemented")
+func (t *TaxedMoneyRange) Mul(other float64) *TaxedMoneyRange {
+	return &TaxedMoneyRange{
+		Start:    t.Start.Mul(other),
+		Stop:     t.Stop.Mul(other),
+		Currency: t.Currency,
+	}
 }
 
-func (t *TaxedMoneyRange) TrueDiv(other any) (*TaxedMoneyRange, error) {
-	panic("not implemented")
+func (t *TaxedMoneyRange) TrueDiv(other float64) *TaxedMoneyRange {
+	return &TaxedMoneyRange{
+		Start:    t.Start.TrueDiv(other),
+		Stop:     t.Stop.TrueDiv(other),
+		Currency: t.Currency,
+	}
 }
 
 func (m *TaxedMoneyRange) fractionalDiscount(fraction decimal.Decimal, fromGross bool) (*TaxedMoneyRange, error) {
