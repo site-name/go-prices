@@ -38,7 +38,7 @@ func TestEqual(t *testing.T) {
 		t.Fatalf("Error NewMoney: %v", err)
 	}
 
-	m2 := &Money{deci, "usd"}
+	m2 := Money{deci, "usd"}
 
 	equal := m1.Equal(m2)
 	if !equal {
@@ -98,7 +98,7 @@ func TestLessThan(t *testing.T) {
 	t.Run("LessThan", func(t *testing.T) {
 		for index, testCase := range testCases {
 
-			lessThan := testCase.left.LessThan(&testCase.right)
+			lessThan := testCase.left.LessThan(testCase.right)
 
 			if lessThan != testCase.expected {
 				t.Fatalf("Case %d: expected: %t, got: %t", index, testCase.expected, lessThan)

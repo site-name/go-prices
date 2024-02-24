@@ -15,7 +15,7 @@ func TestNewMoneyRange(t *testing.T) {
 		t.Fatalf("error create stop money: %v", err)
 	}
 
-	moneyRange, err := NewMoneyRange(start, stop)
+	moneyRange, err := NewMoneyRange(*start, *stop)
 	if err != nil {
 		t.Fatalf("error create new money range: %v", err)
 	}

@@ -16,17 +16,10 @@ type MoneyObject interface {
 // MoneyInterface
 type MoneyInterface[T MoneyObject] interface {
 	Quantize(round Rounding, exp int) (T, error) // NOTE: if exp < 0, system wil use default
-	fractionalDiscount(fraction decimal.Decimal, fromGross bool) (T, error)
-	fixedDiscount(discount *Money) (T, error)
-	MyCurrency() string
-	Equal(T) bool
-	LessThan(T) bool
-	LessThanOrEqual(T) bool
 	fmt.Stringer
-	// Add(any) T
-	// Sub(any) T
-	// Mul(any) (T, error)
-	// TrueDiv(any) (T, error)
+	fixedDiscount(discount Money) (T, error)
+	fractionalDiscount(fraction decimal.Decimal, fromGross bool) (T, error)
+	GetCurrency() string
 }
 
 // QuantizePrice accepts the `price` argument to be either:

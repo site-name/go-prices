@@ -17,18 +17,14 @@ var (
 	ErrStopLessThanStart = errors.New("stop must be greater than start")
 )
 
-// Currencyable
-type Currencyable interface {
-	MyCurrency() string
+type Currencier interface {
+	GetCurrency() string
 }
 
-// RoundFunc is used to round a decimal
 type RoundFunc func(places int32) decimal.Decimal
 
-// Rounding money
 type Rounding uint8
 
-// Rounding variants
 const (
 	Up Rounding = iota
 	Down

@@ -3,7 +3,7 @@ package goprices
 import "github.com/site-name/decimal"
 
 // FixedDiscount applys a fixed discount to any price type.
-func FixedDiscount[K MoneyObject, T MoneyInterface[K]](base T, discount *Money) (K, error) {
+func FixedDiscount[K MoneyObject, T MoneyInterface[K]](base T, discount Money) (K, error) {
 	return base.fixedDiscount(discount)
 }
 
