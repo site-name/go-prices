@@ -8,23 +8,20 @@ import (
 
 // TaxedMoney represents taxed money. It wraps net, gross money and currency.
 type TaxedMoney struct {
-	Net   Money
-	Gross Money
+	net   Money
+	gross Money
 }
 
-var (
-	_ Currencier                  = (*TaxedMoney)(nil)
-	_ MoneyInterface[*TaxedMoney] = (*TaxedMoney)(nil)
-)
+var _ MoneyInterface[TaxedMoney] = (*TaxedMoney)(nil)
 
 // NewTaxedMoney returns new TaxedMoney,
 // If net and gross have different currency type, return nil and error
 func NewTaxedMoney(net, gross Money) (*TaxedMoney, error) {
-	unit1, err := validateCurrency(net.Currency)
+	unit1, err := validateCurrency(net.currency)
 	if err != nil {
 		return nil, err
 	}
-	unit2, err := validateCurrency(gross.Currency)
+	unit2, err := validateCurrency(gross.currency)
 	if err != nil {
 		return nil, err
 	}
@@ -36,71 +33,79 @@ func NewTaxedMoney(net, gross Money) (*TaxedMoney, error) {
 	return &TaxedMoney{net, gross}, nil
 }
 
-// String implements fmt.Stringer interface
-func (t *TaxedMoney) String() string {
-	return fmt.Sprintf("TaxedMoney{net=%s, gross=%s}", t.Net.String(), t.Gross.String())
+func (t TaxedMoney) GetNet() Money {
+	return t.net
 }
 
-// GetCurrency returns current taxed money's Currency
-func (m *TaxedMoney) GetCurrency() string {
-	return m.Net.GetCurrency()
+func (t TaxedMoney) GetGross() Money {
+	return t.gross
+}
+
+// String implements fmt.Stringer interface
+func (t TaxedMoney) String() string {
+	return fmt.Sprintf("TaxedMoney{net=%s, gross=%s}", t.net.String(), t.gross.String())
+}
+
+// GetCurrency returns current taxed money's currency
+func (m TaxedMoney) GetCurrency() string {
+	return m.net.GetCurrency()
 }
 
 // LessThan check if this money's gross is less than other's gross
-func (t *TaxedMoney) LessThan(other TaxedMoney) bool {
-	return t.Gross.LessThan(other.Gross)
+func (t TaxedMoney) LessThan(other TaxedMoney) bool {
+	return t.gross.LessThan(other.gross)
 }
 
 // Equal checks if two taxed money are equal both in net and gross
-func (t *TaxedMoney) Equal(other TaxedMoney) bool {
-	return t.Net.Equal(other.Net) && t.Gross.Equal(other.Gross)
+func (t TaxedMoney) Equal(other TaxedMoney) bool {
+	return t.net.Equal(other.net) && t.gross.Equal(other.gross)
 }
 
 // LessThanOrEqual checks if this money is less than or equal to other.
-func (t *TaxedMoney) LessThanOrEqual(other TaxedMoney) bool {
+func (t TaxedMoney) LessThanOrEqual(other TaxedMoney) bool {
 	return t.LessThan(other) || t.Equal(other)
 }
 
 // Mul multiplies current taxed money with given other
 //
 // other must only be either ints or floats or Decimal
-func (m *TaxedMoney) Mul(other float64) TaxedMoney {
+func (m TaxedMoney) Mul(other float64) TaxedMoney {
 	return TaxedMoney{
-		Net:   m.Net.Mul(other),
-		Gross: m.Gross.Mul(other),
+		net:   m.net.Mul(other),
+		gross: m.gross.Mul(other),
 	}
 }
 
 // TrueDiv divides current tabled money to other.
 // other must be either Decimal or ints or floats
-func (t *TaxedMoney) TrueDiv(other float64) TaxedMoney {
+func (t TaxedMoney) TrueDiv(other float64) TaxedMoney {
 	return TaxedMoney{
-		Gross: t.Gross.TrueDiv(other),
-		Net:   t.Net.TrueDiv(other),
+		gross: t.gross.TrueDiv(other),
+		net:   t.net.TrueDiv(other),
 	}
 }
 
 // Add adds a money or taxed money to this.
 // other must be either Money or TaxedMoney
-func (t *TaxedMoney) Add(other any) (*TaxedMoney, error) {
+func (t TaxedMoney) Add(other any) (*TaxedMoney, error) {
 	switch v := other.(type) {
 	case Money:
-		net, err := t.Net.Add(v)
+		net, err := t.net.Add(v)
 		if err != nil {
 			return nil, err
 		}
-		gross, err := t.Gross.Add(v)
+		gross, err := t.gross.Add(v)
 		if err != nil {
 			return nil, err
 		}
 		return &TaxedMoney{*net, *gross}, nil
 
 	case TaxedMoney:
-		net, err := t.Net.Add(v.Net)
+		net, err := t.net.Add(v.net)
 		if err != nil {
 			return nil, err
 		}
-		gross, err := t.Gross.Add(v.Gross)
+		gross, err := t.gross.Add(v.gross)
 		if err != nil {
 			return nil, err
 		}
@@ -111,31 +116,21 @@ func (t *TaxedMoney) Add(other any) (*TaxedMoney, error) {
 	}
 }
 
+func (t TaxedMoney) Neg() TaxedMoney {
+	return TaxedMoney{
+		net:   t.net.Neg(),
+		gross: t.gross.Neg(),
+	}
+}
+
 // Add substract this money to other.
 // other must be either Money or TaxedMoney.
-func (t *TaxedMoney) Sub(other any) (*TaxedMoney, error) {
+func (t TaxedMoney) Sub(other any) (*TaxedMoney, error) {
 	switch v := other.(type) {
 	case Money:
-		net, err := t.Net.Sub(v)
-		if err != nil {
-			return nil, err
-		}
-		gross, err := t.Gross.Sub(v)
-		if err != nil {
-			return nil, err
-		}
-		return &TaxedMoney{*net, *gross}, nil
-
+		return t.Add(v.Neg())
 	case TaxedMoney:
-		net, err := t.Net.Sub(v.Net)
-		if err != nil {
-			return nil, err
-		}
-		gross, err := t.Gross.Sub(v.Gross)
-		if err != nil {
-			return nil, err
-		}
-		return &TaxedMoney{*net, *gross}, nil
+		return t.Add(v.Neg())
 
 	default:
 		return nil, ErrUnknownType
@@ -143,49 +138,49 @@ func (t *TaxedMoney) Sub(other any) (*TaxedMoney, error) {
 }
 
 // Tax calculates taxed money by subtracting m's gross to m's net
-func (t *TaxedMoney) Tax() *Money {
-	tax, _ := t.Gross.Sub(t.Net)
+func (t TaxedMoney) Tax() *Money {
+	tax, _ := t.gross.Sub(t.net)
 	return tax
 }
 
 // Return a new instance with both net and gross quantized.
 // All arguments are passed to `Money.quantize
-func (t *TaxedMoney) Quantize(round Rounding, exp int) (*TaxedMoney, error) {
-	net, err := t.Net.Quantize(round, exp)
+func (t TaxedMoney) Quantize(round Rounding, exp int) (*TaxedMoney, error) {
+	net, err := t.net.Quantize(round, exp)
 	if err != nil {
 		return nil, err
 	}
-	gross, err := t.Gross.Quantize(round, exp)
+	gross, err := t.gross.Quantize(round, exp)
 	if err != nil {
 		return nil, err
 	}
 
 	return &TaxedMoney{
-		Net:   *net,
-		Gross: *gross,
+		net:   *net,
+		gross: *gross,
 	}, nil
 }
 
 // Apply a fixed discount to TaxedMoney.
-func (t *TaxedMoney) fixedDiscount(discount Money) (*TaxedMoney, error) {
-	baseNet, err := t.Net.fixedDiscount(discount)
+func (t TaxedMoney) fixedDiscount(discount Money) (*TaxedMoney, error) {
+	baseNet, err := t.net.fixedDiscount(discount)
 	if err != nil {
 		return nil, err
 	}
-	baseGross, err := t.Gross.fixedDiscount(discount)
+	baseGross, err := t.gross.fixedDiscount(discount)
 	if err != nil {
 		return nil, err
 	}
 	return NewTaxedMoney(*baseNet, *baseGross)
 }
 
-func (m *TaxedMoney) fractionalDiscount(fraction decimal.Decimal, fromGross bool) (*TaxedMoney, error) {
+func (m TaxedMoney) fractionalDiscount(fraction decimal.Decimal, fromGross bool) (*TaxedMoney, error) {
 	op := Money{
-		Currency: m.GetCurrency(),
-		Amount:   m.Gross.Amount,
+		currency: m.GetCurrency(),
+		amount:   m.gross.amount,
 	}
 	if !fromGross {
-		op.Amount = m.Net.Amount
+		op.amount = m.net.amount
 	}
 
 	op = op.Mul(fraction.InexactFloat64())
