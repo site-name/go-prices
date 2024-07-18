@@ -4,5 +4,5 @@ go 1.19
 
 require (
 	github.com/site-name/decimal v1.3.0
-	golang.org/x/text v0.3.7
+	golang.org/x/text v0.16.0
 )
