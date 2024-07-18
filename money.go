@@ -43,6 +43,14 @@ func (m *Money) GetCurrency() string {
 	return m.currency
 }
 
+func (m *Money) SetAmount(amount decimal.Decimal) {
+	m.amount = amount
+}
+
+func (m *Money) SetCurrency(currency string) {
+	m.currency = currency
+}
+
 func (m *Money) GetAmount() decimal.Decimal {
 	return m.amount
 }
