@@ -48,6 +48,14 @@ func (m *MoneyRange) GetStart() Money {
 	return m.start
 }
 
+func (m *MoneyRange) SetStart(start Money) {
+	m.start = start
+}
+
+func (m *MoneyRange) SetStop(start Money) {
+	m.stop = stop
+}
+
 func (m *MoneyRange) GetStop() Money {
 	if m == nil {
 		panic(ErrNillValue)
