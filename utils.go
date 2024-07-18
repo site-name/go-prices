@@ -18,8 +18,8 @@ func validateCurrency(currencyCode string) (string, error) {
 
 // SameKind checks if other's currency is identical to current money currency.
 // If other is nil, returns false.
-func (m *Money) SameKind(other Money) bool {
-	return strings.EqualFold(m.Currency, other.Currency)
+func (m Money) SameKind(other Money) bool {
+	return strings.EqualFold(m.currency, other.currency)
 }
 
 // GetCurrencyPrecision returns a number for money rounding.
