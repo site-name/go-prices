@@ -52,7 +52,7 @@ func (m *MoneyRange) SetStart(start Money) {
 	m.start = start
 }
 
-func (m *MoneyRange) SetStop(start Money) {
+func (m *MoneyRange) SetStop(stop Money) {
 	m.stop = stop
 }
 
