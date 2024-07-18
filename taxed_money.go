@@ -40,6 +40,14 @@ func (t *TaxedMoney) GetNet() Money {
 	return t.net
 }
 
+func (m *TaxedMoney) SetNet(net Money) {
+	m.net = net
+}
+
+func (m *TaxedMoney) SetGross(gross Money) {
+	m.gross = gross
+}
+
 func (t *TaxedMoney) GetGross() Money {
 	if t == nil {
 		panic(ErrNillValue)
