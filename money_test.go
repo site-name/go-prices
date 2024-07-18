@@ -73,23 +73,23 @@ func TestLessThan(t *testing.T) {
 	var testCases = []testCase{
 		{
 			left: Money{
-				Amount:   decimal.NewFromFloat(34.5),
-				Currency: USD,
+				amount:   decimal.NewFromFloat(34.5),
+				currency: USD,
 			},
 			right: Money{
-				Amount:   decimal.NewFromInt(35),
-				Currency: USD,
+				amount:   decimal.NewFromInt(35),
+				currency: USD,
 			},
 			expected: true,
 		},
 		{
 			left: Money{
-				Amount:   decimal.NewFromFloat(34.5),
-				Currency: VND,
+				amount:   decimal.NewFromFloat(34.5),
+				currency: VND,
 			},
 			right: Money{
-				Amount:   decimal.NewFromFloat(79),
-				Currency: VND,
+				amount:   decimal.NewFromFloat(79),
+				currency: VND,
 			},
 			expected: true,
 		},
