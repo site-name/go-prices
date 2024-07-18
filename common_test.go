@@ -11,7 +11,7 @@ func TestQuantizePrice(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := QuantizePrice[Money, Money](*money, Up)
+	res, err := QuantizePrice[Money, *Money](money, Up)
 	if err != nil {
 		t.Fatal(err)
 	}

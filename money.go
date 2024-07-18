@@ -34,39 +34,39 @@ func NewMoneyFromDecimal(amount decimal.Decimal, currency string) (*Money, error
 }
 
 // String implements fmt.Stringer interface
-func (m Money) String() string {
+func (m *Money) String() string {
 	return fmt.Sprintf("Money{%s, %s}", m.amount.String(), m.currency)
 }
 
 // GetCurrency returns current money's currency
-func (m Money) GetCurrency() string {
+func (m *Money) GetCurrency() string {
 	return m.currency
 }
 
-func (m Money) GetAmount() decimal.Decimal {
+func (m *Money) GetAmount() decimal.Decimal {
 	return m.amount
 }
 
 // LessThan checks if other's amount is greater than m's amount
 // AND checking same currency included
-func (m Money) LessThan(other Money) bool {
-	return m.SameKind(other) && m.amount.LessThan(other.amount)
+func (m *Money) LessThan(other Money) bool {
+	return m != nil && m.SameKind(other) && m.amount.LessThan(other.amount)
 }
 
 // Equal checks if other's amount is equal to m's amount
-func (m Money) Equal(other Money) bool {
-	return m.SameKind(other) && m.amount.Equal(other.amount)
+func (m *Money) Equal(other Money) bool {
+	return m != nil && m.SameKind(other) && m.amount.Equal(other.amount)
 }
 
 // LessThanOrEqual check if m's amount is less than or equal to other's amount
-func (m Money) LessThanOrEqual(other Money) bool {
-	return m.LessThan(other) || m.Equal(other)
+func (m *Money) LessThanOrEqual(other Money) bool {
+	return m != nil && m.LessThan(other) || m.Equal(other)
 }
 
 // Mul multiplty current money with the givent other.
 //
 // NOTE: other must be either ints or floats or Decimal
-func (m Money) Mul(other float64) Money {
+func (m *Money) Mul(other float64) Money {
 	return Money{
 		currency: m.currency,
 		amount:   m.amount.Mul(decimal.NewFromFloat(other)),
@@ -76,7 +76,7 @@ func (m Money) Mul(other float64) Money {
 // TrueDiv divides money with the given other.
 //
 // NOTE: other must be either ints or uints or floats or Decimal or Money
-func (m Money) TrueDiv(other float64) Money {
+func (m *Money) TrueDiv(other float64) Money {
 	return Money{
 		currency: m.currency,
 		amount:   m.amount.DivRound(decimal.NewFromFloat(other), int32(currencies[m.currency].Fraction)),
@@ -85,7 +85,7 @@ func (m Money) TrueDiv(other float64) Money {
 
 // Add adds two money amount together, returns new money.
 // If returned error is not nil, it could be ErrNotSameCurrency
-func (m Money) Add(other Money) (*Money, error) {
+func (m *Money) Add(other Money) (*Money, error) {
 	if !m.SameKind(other) {
 		return nil, ErrNotSameCurrency
 	}
@@ -97,7 +97,7 @@ func (m Money) Add(other Money) (*Money, error) {
 }
 
 // Neg returns -m
-func (m Money) Neg() Money {
+func (m *Money) Neg() Money {
 	return Money{
 		amount:   m.amount.Neg(),
 		currency: m.currency,
@@ -106,13 +106,19 @@ func (m Money) Neg() Money {
 
 // Sub subtracts current money to given other.
 // If error is not nil, it could be ErrNotSameCurrency
-func (m Money) Sub(other Money) (*Money, error) {
+func (m *Money) Sub(other Money) (*Money, error) {
+	if m == nil {
+		return nil, ErrNillValue
+	}
 	return m.Add(m.Neg())
 }
 
 // Return a copy of the object with its amount quantized.
 // NOTE: if exp < 0, default will be used
-func (m Money) Quantize(round Rounding, exp int) (*Money, error) {
+func (m *Money) Quantize(round Rounding, exp int) (*Money, error) {
+	if m == nil {
+		return nil, ErrNillValue
+	}
 	if exp < 0 {
 		exp, _ = GetCurrencyPrecision(m.currency)
 	}
@@ -138,7 +144,11 @@ func (m Money) Quantize(round Rounding, exp int) (*Money, error) {
 }
 
 // Apply a fixed discount to Money type.
-func (m Money) fixedDiscount(discount Money) (*Money, error) {
+func (m *Money) fixedDiscount(discount Money) (*Money, error) {
+	if m == nil {
+		return nil, ErrNillValue
+	}
+
 	sub, err := m.Sub(discount)
 	if err != nil {
 		return nil, err
@@ -154,7 +164,11 @@ func (m Money) fixedDiscount(discount Money) (*Money, error) {
 	}, nil
 }
 
-func (m Money) fractionalDiscount(fraction decimal.Decimal, _ bool) (*Money, error) {
+func (m *Money) fractionalDiscount(fraction decimal.Decimal, _ bool) (*Money, error) {
+	if m == nil {
+		return nil, ErrNillValue
+	}
+
 	mul := m.Mul(fraction.InexactFloat64())
 	quantized, err := mul.Quantize(Down, -1)
 	if err != nil {

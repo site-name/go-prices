@@ -41,28 +41,40 @@ func NewMoneyRange(start, stop Money) (*MoneyRange, error) {
 	}, nil
 }
 
-func (m MoneyRange) GetStart() Money {
+func (m *MoneyRange) GetStart() Money {
+	if m == nil {
+		panic(ErrNillValue)
+	}
 	return m.start
 }
 
-func (m MoneyRange) GetStop() Money {
+func (m *MoneyRange) GetStop() Money {
+	if m == nil {
+		panic(ErrNillValue)
+	}
 	return m.stop
 }
 
-func (m MoneyRange) String() string {
+func (m *MoneyRange) String() string {
+	if m == nil {
+		panic(ErrNillValue)
+	}
 	return fmt.Sprintf("MoneyRange{%s, %s}", m.start.String(), m.stop.String())
 }
 
 // GetCurrency returns current money range's currency
-func (m MoneyRange) GetCurrency() string {
+func (m *MoneyRange) GetCurrency() string {
+	if m == nil {
+		panic(ErrNillValue)
+	}
 	return m.start.currency
 }
 
 // Add adds a Value to current.
 //
 // other must be either Money or MoneyRange
-func (m MoneyRange) Add(other any) (*MoneyRange, error) {
-	if other == nil {
+func (m *MoneyRange) Add(other any) (*MoneyRange, error) {
+	if other == nil || m == nil {
 		return nil, ErrNillValue
 	}
 
@@ -96,7 +108,7 @@ func (m MoneyRange) Add(other any) (*MoneyRange, error) {
 
 // Sub subtracts current money to given `other`.
 // `other` can be either `Money` or `MoneyRange`
-func (m MoneyRange) Sub(other any) (*MoneyRange, error) {
+func (m *MoneyRange) Sub(other any) (*MoneyRange, error) {
 	if other == nil {
 		return nil, ErrNillValue
 	}
@@ -112,7 +124,10 @@ func (m MoneyRange) Sub(other any) (*MoneyRange, error) {
 	}
 }
 
-func (m MoneyRange) Neg() MoneyRange {
+func (m *MoneyRange) Neg() MoneyRange {
+	if m == nil {
+		panic(ErrNillValue)
+	}
 	return MoneyRange{
 		start: m.start.Neg(),
 		stop:  m.stop.Neg(),
@@ -120,28 +135,31 @@ func (m MoneyRange) Neg() MoneyRange {
 }
 
 // Equal Checks if two MoneyRange are equal both `start`, `stop` and `currency`
-func (m MoneyRange) Equal(other MoneyRange) bool {
-	return m.start.Equal(other.start) && m.stop.Equal(other.stop)
+func (m *MoneyRange) Equal(other MoneyRange) bool {
+	return m != nil && m.start.Equal(other.start) && m.stop.Equal(other.stop)
 }
 
 // LessThan compares currenct money range to given other
-func (m MoneyRange) LessThan(other MoneyRange) bool {
-	return m.start.LessThan(other.start) && m.stop.LessThan(other.stop)
+func (m *MoneyRange) LessThan(other MoneyRange) bool {
+	return m != nil && m.start.LessThan(other.start) && m.stop.LessThan(other.stop)
 }
 
 // LessThanOrEqual checks if current money range is less than or equal given other
-func (m MoneyRange) LessThanOrEqual(other MoneyRange) bool {
-	return m.LessThan(other) || m.Equal(other)
+func (m *MoneyRange) LessThanOrEqual(other MoneyRange) bool {
+	return m != nil && m.LessThan(other) || m.Equal(other)
 }
 
 // Contains check if a Money is between this MoneyRange's two ends
-func (m MoneyRange) Contains(value Money) bool {
-	return m.start.LessThanOrEqual(value) && value.LessThanOrEqual(m.stop)
+func (m *MoneyRange) Contains(value Money) bool {
+	return m != nil && m.start.LessThanOrEqual(value) && value.LessThanOrEqual(m.stop)
 }
 
 // Return a copy of the range with start and stop quantized.
 // NOTE: if exp < 0 the system will use default
-func (m MoneyRange) Quantize(round Rounding, exp int) (*MoneyRange, error) {
+func (m *MoneyRange) Quantize(round Rounding, exp int) (*MoneyRange, error) {
+	if m == nil {
+		return nil, ErrNillValue
+	}
 	start, err := m.start.Quantize(round, exp)
 	if err != nil {
 		return nil, err
@@ -157,7 +175,10 @@ func (m MoneyRange) Quantize(round Rounding, exp int) (*MoneyRange, error) {
 }
 
 // Replace replace start and stop of currenct MoneyRagne With two given `start` and `stop` respectively.
-func (m MoneyRange) Replace(start, stop *Money) (*MoneyRange, error) {
+func (m *MoneyRange) Replace(start, stop *Money) (*MoneyRange, error) {
+	if m == nil {
+		return nil, ErrNillValue
+	}
 	if start == nil {
 		start = &m.start
 	}
@@ -168,7 +189,11 @@ func (m MoneyRange) Replace(start, stop *Money) (*MoneyRange, error) {
 }
 
 // Apply a fixed discount to MoneyRange.
-func (m MoneyRange) fixedDiscount(discount Money) (*MoneyRange, error) {
+func (m *MoneyRange) fixedDiscount(discount Money) (*MoneyRange, error) {
+	if m == nil {
+		return nil, ErrNillValue
+	}
+
 	baseStart, err := m.start.fixedDiscount(discount)
 	if err != nil {
 		return nil, err
@@ -180,21 +205,30 @@ func (m MoneyRange) fixedDiscount(discount Money) (*MoneyRange, error) {
 	return NewMoneyRange(*baseStart, *baseStop)
 }
 
-func (m MoneyRange) Mul(other float64) MoneyRange {
+func (m *MoneyRange) Mul(other float64) MoneyRange {
+	if m == nil {
+		panic(ErrNillValue)
+	}
 	return MoneyRange{
 		start: m.start.Mul(other),
 		stop:  m.start.Mul(other),
 	}
 }
 
-func (m MoneyRange) TrueDiv(other float64) MoneyRange {
+func (m *MoneyRange) TrueDiv(other float64) MoneyRange {
+	if m == nil {
+		panic(ErrNillValue)
+	}
 	return MoneyRange{
 		start: m.start.TrueDiv(other),
 		stop:  m.start.TrueDiv(other),
 	}
 }
 
-func (m MoneyRange) fractionalDiscount(fraction decimal.Decimal, fromGross bool) (*MoneyRange, error) {
+func (m *MoneyRange) fractionalDiscount(fraction decimal.Decimal, fromGross bool) (*MoneyRange, error) {
+	if m == nil {
+		return nil, ErrNillValue
+	}
 	start, err1 := m.start.fractionalDiscount(fraction, fromGross)
 	if err1 != nil {
 		return nil, err1

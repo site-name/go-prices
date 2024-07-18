@@ -14,11 +14,11 @@ type MoneyObject interface {
 }
 
 type MoneyInterface[T MoneyObject] interface {
-	Quantize(round Rounding, exp int) (*T, error) // NOTE: if exp < 0, system wil use default
 	fmt.Stringer
+	Currencier
+	Quantize(round Rounding, exp int) (*T, error) // NOTE: if exp < 0, system wil use default
 	fixedDiscount(discount Money) (*T, error)
 	fractionalDiscount(fraction decimal.Decimal, fromGross bool) (*T, error)
-	GetCurrency() string
 	Neg() T
 }
 
