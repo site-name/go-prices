@@ -7,14 +7,19 @@ import (
 )
 
 type TaxedMoneyRange struct {
-	Start TaxedMoney
-	Stop  TaxedMoney
+	start TaxedMoney
+	stop  TaxedMoney
 }
 
-var (
-	_ Currencier                       = (*TaxedMoneyRange)(nil)
-	_ MoneyInterface[*TaxedMoneyRange] = (*TaxedMoneyRange)(nil)
-)
+var _ MoneyInterface[TaxedMoneyRange] = (*TaxedMoneyRange)(nil)
+
+func (t TaxedMoneyRange) GetStart() TaxedMoney {
+	return t.start
+}
+
+func (t TaxedMoneyRange) GetStop() TaxedMoney {
+	return t.stop
+}
 
 // NewTaxedMoneyRange create new taxed money range.
 // It returns nil and error value if start > stop or they have different currencies
@@ -30,7 +35,7 @@ func NewTaxedMoneyRange(start, stop TaxedMoney) (*TaxedMoneyRange, error) {
 	if startUnit != stopUnit {
 		return nil, ErrNotSameCurrency
 	}
-	if start.Net.Amount.LessThan(decimal.Zero) || stop.Gross.Amount.LessThan(decimal.Zero) {
+	if start.net.amount.LessThan(decimal.Zero) || stop.gross.amount.LessThan(decimal.Zero) {
 		return nil, ErrMoneyNegative
 	}
 
@@ -41,48 +46,55 @@ func NewTaxedMoneyRange(start, stop TaxedMoney) (*TaxedMoneyRange, error) {
 	return &TaxedMoneyRange{start, stop}, nil
 }
 
+func (t TaxedMoneyRange) Neg() TaxedMoneyRange {
+	return TaxedMoneyRange{
+		start: t.start,
+		stop:  t.stop,
+	}
+}
+
 // String implements fmt.Stringer interface
-func (t *TaxedMoneyRange) String() string {
-	return fmt.Sprintf("TaxedMoneyRange{%s, %s}", t.Start.String(), t.Stop.String())
+func (t TaxedMoneyRange) String() string {
+	return fmt.Sprintf("TaxedMoneyRange{%s, %s}", t.start.String(), t.stop.String())
 }
 
 // GetCurrency returns current taxed money range's Currency
-func (t *TaxedMoneyRange) GetCurrency() string {
-	return t.Start.GetCurrency()
+func (t TaxedMoneyRange) GetCurrency() string {
+	return t.start.GetCurrency()
 }
 
 // Add adds this taxed money range to another value
 // other must be either: Money, MoneyRange or TaxedMoneyRange or TaxedMoney
-func (t *TaxedMoneyRange) Add(other any) (*TaxedMoneyRange, error) {
+func (t TaxedMoneyRange) Add(other any) (*TaxedMoneyRange, error) {
 	switch v := other.(type) {
 	case Money, TaxedMoney:
-		start, err := t.Start.Add(v)
+		start, err := t.start.Add(v)
 		if err != nil {
 			return nil, err
 		}
-		stop, err := t.Stop.Add(v)
+		stop, err := t.stop.Add(v)
 		if err != nil {
 			return nil, err
 		}
 		return &TaxedMoneyRange{*start, *stop}, nil
 
 	case MoneyRange:
-		start, err := t.Start.Add(v.Start)
+		start, err := t.start.Add(v.start)
 		if err != nil {
 			return nil, err
 		}
-		stop, err := t.Stop.Add(v.Stop)
+		stop, err := t.stop.Add(v.stop)
 		if err != nil {
 			return nil, err
 		}
 		return &TaxedMoneyRange{*start, *stop}, nil
 
 	case TaxedMoneyRange:
-		start, err := t.Start.Add(v.Start)
+		start, err := t.start.Add(v.start)
 		if err != nil {
 			return nil, err
 		}
-		stop, err := t.Stop.Add(v.Stop)
+		stop, err := t.stop.Add(v.stop)
 		if err != nil {
 			return nil, err
 		}
@@ -95,44 +107,20 @@ func (t *TaxedMoneyRange) Add(other any) (*TaxedMoneyRange, error) {
 
 // Sub substract this taxed money range to given other.
 // other must be either Money or TaxedMoney or MoneyRange or TaxedMoneyRange
-func (t *TaxedMoneyRange) Sub(other any) (*TaxedMoneyRange, error) {
+func (t TaxedMoneyRange) Sub(other any) (*TaxedMoneyRange, error) {
 	if other == nil {
 		return nil, ErrNillValue
 	}
 
 	switch v := other.(type) {
-	case Money, TaxedMoney:
-		start, err := t.Start.Sub(v)
-		if err != nil {
-			return nil, err
-		}
-		stop, err := t.Stop.Sub(v)
-		if err != nil {
-			return nil, err
-		}
-		return &TaxedMoneyRange{*start, *stop}, nil
-
+	case Money:
+		return t.Add(v.Neg())
+	case TaxedMoney:
+		return t.Add(v.Neg())
 	case MoneyRange:
-		start, err := t.Start.Sub(v.Start)
-		if err != nil {
-			return nil, err
-		}
-		stop, err := t.Stop.Sub(v.Stop)
-		if err != nil {
-			return nil, err
-		}
-		return &TaxedMoneyRange{*start, *stop}, nil
-
+		return t.Add(v.Neg())
 	case TaxedMoneyRange:
-		start, err := t.Start.Sub(v.Start)
-		if err != nil {
-			return nil, err
-		}
-		stop, err := t.Stop.Sub(v.Stop)
-		if err != nil {
-			return nil, err
-		}
-		return &TaxedMoneyRange{*start, *stop}, nil
+		return t.Add(v.Neg())
 
 	default:
 		return nil, ErrUnknownType
@@ -140,90 +128,90 @@ func (t *TaxedMoneyRange) Sub(other any) (*TaxedMoneyRange, error) {
 }
 
 // Equal compares two taxed money range
-func (t *TaxedMoneyRange) Equal(other TaxedMoneyRange) bool {
-	return t.Start.Equal(other.Start) && t.Stop.Equal(other.Stop)
+func (t TaxedMoneyRange) Equal(other TaxedMoneyRange) bool {
+	return t.start.Equal(other.start) && t.stop.Equal(other.stop)
 }
 
 // LessThan checks if current taxed money range less than given other
-func (t *TaxedMoneyRange) LessThan(other TaxedMoneyRange) bool {
-	return t.Start.LessThan(other.Start) && t.Stop.LessThan(other.Stop)
+func (t TaxedMoneyRange) LessThan(other TaxedMoneyRange) bool {
+	return t.start.LessThan(other.start) && t.stop.LessThan(other.stop)
 }
 
 // LessThanOrEqual checks if current taxed money range less than or equal to given other
-func (t *TaxedMoneyRange) LessThanOrEqual(other TaxedMoneyRange) bool {
+func (t TaxedMoneyRange) LessThanOrEqual(other TaxedMoneyRange) bool {
 	return t.LessThan(other) || t.Equal(other)
 }
 
 // Contains check is given taxed money is in range from start to stop.
 //
 // start <= item <= stop
-func (t *TaxedMoneyRange) Contains(item TaxedMoney) bool {
-	return t.Start.LessThanOrEqual(item) && item.LessThanOrEqual(t.Stop)
+func (t TaxedMoneyRange) Contains(item TaxedMoney) bool {
+	return t.start.LessThanOrEqual(item) && item.LessThanOrEqual(t.stop)
 }
 
 // Return a copy of the range with start and stop quantized.
 // NOTE: if exp < 0; default will be used
-func (t *TaxedMoneyRange) Quantize(round Rounding, exp int) (*TaxedMoneyRange, error) {
-	start, err := t.Start.Quantize(round, exp)
+func (t TaxedMoneyRange) Quantize(round Rounding, exp int) (*TaxedMoneyRange, error) {
+	start, err := t.start.Quantize(round, exp)
 	if err != nil {
 		return nil, err
 	}
-	stop, err := t.Stop.Quantize(round, exp)
+	stop, err := t.stop.Quantize(round, exp)
 	if err != nil {
 		return nil, err
 	}
 	return &TaxedMoneyRange{
-		Start: *start,
-		Stop:  *stop,
+		start: *start,
+		stop:  *stop,
 	}, nil
 }
 
 // Return a range with start or stop replaced with given values
-func (t *TaxedMoneyRange) Replace(start, stop *TaxedMoney) (*TaxedMoneyRange, error) {
+func (t TaxedMoneyRange) Replace(start, stop *TaxedMoney) (*TaxedMoneyRange, error) {
 	if start == nil {
-		start = &t.Start
+		start = &t.start
 	}
 	if stop == nil {
-		stop = &t.Stop
+		stop = &t.stop
 	}
 
 	return NewTaxedMoneyRange(*start, *stop)
 }
 
 // Apply a fixed discount to TaxedMoneyRange.
-func (t *TaxedMoneyRange) fixedDiscount(discount Money) (*TaxedMoneyRange, error) {
-	baseStart, err := t.Start.fixedDiscount(discount)
+func (t TaxedMoneyRange) fixedDiscount(discount Money) (*TaxedMoneyRange, error) {
+	baseStart, err := t.start.fixedDiscount(discount)
 	if err != nil {
 		return nil, err
 	}
-	baseStop, err := t.Stop.fixedDiscount(discount)
+	baseStop, err := t.stop.fixedDiscount(discount)
 	if err != nil {
 		return nil, err
 	}
 	return NewTaxedMoneyRange(*baseStart, *baseStop)
 }
 
-func (t *TaxedMoneyRange) Mul(other float64) TaxedMoneyRange {
+func (t TaxedMoneyRange) Mul(other float64) TaxedMoneyRange {
 	return TaxedMoneyRange{
-		Start: t.Start.Mul(other),
-		Stop:  t.Stop.Mul(other),
+		start: t.start.Mul(other),
+		stop:  t.stop.Mul(other),
 	}
 }
 
-func (t *TaxedMoneyRange) TrueDiv(other float64) *TaxedMoneyRange {
-	return &TaxedMoneyRange{
-		Start: t.Start.TrueDiv(other),
-		Stop:  t.Stop.TrueDiv(other),
+func (t TaxedMoneyRange) TrueDiv(other float64) TaxedMoneyRange {
+	return TaxedMoneyRange{
+		start: t.start.TrueDiv(other),
+		stop:  t.stop.TrueDiv(other),
 	}
 }
 
-func (m *TaxedMoneyRange) fractionalDiscount(fraction decimal.Decimal, fromGross bool) (*TaxedMoneyRange, error) {
-	start, err := m.Start.fractionalDiscount(fraction, fromGross)
+func (m TaxedMoneyRange) fractionalDiscount(fraction decimal.Decimal, fromGross bool) (*TaxedMoneyRange, error) {
+	start, err := m.start.fractionalDiscount(fraction, fromGross)
 	if err != nil {
 		return nil, err
 	}
 
-	stop, err := m.Stop.fractionalDiscount(fraction, fromGross)
+	stop, err := m.stop.fractionalDiscount(fraction, fromGross)
 	if err != nil {
 		return nil, err
 	}
