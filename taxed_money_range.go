@@ -70,6 +70,14 @@ func (t *TaxedMoneyRange) String() string {
 	return fmt.Sprintf("TaxedMoneyRange{%s, %s}", t.start.String(), t.stop.String())
 }
 
+func (m *TaxedMoneyRange) SetStart(start TaxedMoney) {
+	m.start = start
+}
+
+func (m *TaxedMoneyRange) SetStop(stop TaxedMoney) {
+	m.stop = stop
+}
+
 // GetCurrency returns current taxed money range's Currency
 func (t *TaxedMoneyRange) GetCurrency() string {
 	if t == nil {
