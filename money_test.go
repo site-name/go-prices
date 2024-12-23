@@ -33,12 +33,12 @@ func TestMul(t *testing.T) {
 
 func TestEqual(t *testing.T) {
 	deci := decimal.NewFromInt(20)
-	m1, err := NewMoney(20, USD)
+	m1, err := NewMoney(20.0, USD)
 	if err != nil {
 		t.Fatalf("Error NewMoney: %v", err)
 	}
 
-	m2 := Money{deci, "usd"}
+	m2 := Money{deci, USD}
 
 	equal := m1.Equal(m2)
 	if !equal {
@@ -69,7 +69,6 @@ type testCase struct {
 }
 
 func TestLessThan(t *testing.T) {
-
 	var testCases = []testCase{
 		{
 			left: Money{
@@ -105,4 +104,53 @@ func TestLessThan(t *testing.T) {
 			}
 		}
 	})
+}
+
+func TestSub(t *testing.T) {
+	m1, err := NewMoney(45, USD)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	m2, err := NewMoney(23, USD)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sub, err := m1.Sub(*m2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Println(sub)
+}
+
+func TestAdd(t *testing.T) {
+	m1, err := NewMoney(45, USD)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	m2, err := NewMoney(23, USD)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	add, err := m1.Add(*m2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Println(add)
+}
+
+func TestNeg(t *testing.T) {
+	m1, err := NewMoney(45, USD)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	neg := m1.Neg()
+
+	fmt.Println(neg)
 }

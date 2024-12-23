@@ -1,8 +1,6 @@
 package goprices
 
 import (
-	"fmt"
-
 	"github.com/site-name/decimal"
 )
 
@@ -14,11 +12,11 @@ type MoneyObject interface {
 }
 
 type MoneyInterface[T MoneyObject] interface {
-	fmt.Stringer
-	Currencier
+	String() string
+	GetCurrency() string
 	Quantize(round Rounding, exp int) (*T, error) // NOTE: if exp < 0, system wil use default
 	fixedDiscount(discount Money) (*T, error)
-	fractionalDiscount(fraction decimal.Decimal, fromGross bool) (*T, error)
+	fractionalDiscount(fraction decimal.Decimal, fromGross bool, rounding Rounding) (*T, error)
 	Neg() T
 }
 

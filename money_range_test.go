@@ -22,3 +22,21 @@ func TestNewMoneyRange(t *testing.T) {
 
 	fmt.Println(moneyRange.String())
 }
+
+func TestMoneyRangeSub(t *testing.T) {
+	range1, err := NewMoneyRangeFromFloats(23.45, 50, USD)
+	if err != nil {
+		t.Fatalf("error create range1: %v", err)
+	}
+
+	range2, err := NewMoney(2, USD)
+	if err != nil {
+		t.Fatalf("error create range2: %v", err)
+	}
+
+	res, err := range1.Sub(*range2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(res)
+}

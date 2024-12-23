@@ -8,12 +8,12 @@ func FixedDiscount[K MoneyObject, T MoneyInterface[K]](base T, discount Money) (
 }
 
 // FractionalDiscount Apply a fractional discount based on either gross or net amount
-func FractionalDiscount[K MoneyObject, T MoneyInterface[K]](base T, fraction decimal.Decimal, fromGross bool) (*K, error) {
-	return base.fractionalDiscount(fraction, fromGross)
+func FractionalDiscount[K MoneyObject, T MoneyInterface[K]](base T, fraction decimal.Decimal, fromGross bool, rounding Rounding) (*K, error) {
+	return base.fractionalDiscount(fraction, fromGross, rounding)
 }
 
 // PercentageDiscount Apply a percentage discount based on either gross or net amount.
-func PercentageDiscount[K MoneyObject, T MoneyInterface[K]](base T, percentage float64, fromGross bool) (*K, error) {
+func PercentageDiscount[K MoneyObject, T MoneyInterface[K]](base T, percentage float64, fromGross bool, rounding Rounding) (*K, error) {
 	factor := decimal.NewFromFloat(percentage).Div(decimal.NewFromFloat(100))
-	return base.fractionalDiscount(factor, fromGross)
+	return base.fractionalDiscount(factor, fromGross, rounding)
 }

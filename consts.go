@@ -17,10 +17,6 @@ var (
 	ErrStopLessThanStart = errors.New("stop must be greater than start")
 )
 
-type Currencier interface {
-	GetCurrency() string
-}
-
 type RoundFunc func(places int32) decimal.Decimal
 
 type Rounding uint8

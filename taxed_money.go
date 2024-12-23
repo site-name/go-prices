@@ -33,10 +33,31 @@ func NewTaxedMoney(net, gross Money) (*TaxedMoney, error) {
 	return &TaxedMoney{net, gross}, nil
 }
 
-func (t *TaxedMoney) GetNet() Money {
-	if t == nil {
-		panic(ErrNillValue)
+func NewTaxedMoneyFromFloats(net, gross float64, currency string) (*TaxedMoney, error) {
+	netMoney, err := NewMoney(net, currency)
+	if err != nil {
+		return nil, err
 	}
+	grossMoney, err := NewMoney(gross, currency)
+	if err != nil {
+		return nil, err
+	}
+	return NewTaxedMoney(*netMoney, *grossMoney)
+}
+
+func NewTaxedMoneyFromDecimals(net, gross decimal.Decimal, currency string) (*TaxedMoney, error) {
+	netMoney, err := NewMoneyFromDecimal(net, currency)
+	if err != nil {
+		return nil, err
+	}
+	grossMoney, err := NewMoneyFromDecimal(gross, currency)
+	if err != nil {
+		return nil, err
+	}
+	return NewTaxedMoney(*netMoney, *grossMoney)
+}
+
+func (t TaxedMoney) GetNet() Money {
 	return t.net
 }
 
@@ -48,63 +69,48 @@ func (m *TaxedMoney) SetGross(gross Money) {
 	m.gross = gross
 }
 
-func (t *TaxedMoney) GetGross() Money {
-	if t == nil {
-		panic(ErrNillValue)
-	}
+func (t TaxedMoney) GetGross() Money {
 	return t.gross
 }
 
 // String implements fmt.Stringer interface
-func (t *TaxedMoney) String() string {
-	if t == nil {
-		panic(ErrNillValue)
-	}
+func (t TaxedMoney) String() string {
 	return fmt.Sprintf("TaxedMoney{net=%s, gross=%s}", t.net.String(), t.gross.String())
 }
 
 // GetCurrency returns current taxed money's currency
-func (m *TaxedMoney) GetCurrency() string {
-	if m == nil {
-		panic(ErrNillValue)
-	}
+func (m TaxedMoney) GetCurrency() string {
 	return m.net.currency
 }
 
 // LessThan check if this money's gross is less than other's gross
-func (t *TaxedMoney) LessThan(other TaxedMoney) bool {
-	return t != nil && t.gross.LessThan(other.gross)
+func (t TaxedMoney) LessThan(other TaxedMoney) bool {
+	return t.gross.LessThan(other.gross)
 }
 
 // Equal checks if two taxed money are equal both in net and gross
-func (t *TaxedMoney) Equal(other TaxedMoney) bool {
-	return t != nil && t.net.Equal(other.net) && t.gross.Equal(other.gross)
+func (t TaxedMoney) Equal(other TaxedMoney) bool {
+	return t.net.Equal(other.net) && t.gross.Equal(other.gross)
 }
 
 // LessThanOrEqual checks if this money is less than or equal to other.
-func (t *TaxedMoney) LessThanOrEqual(other TaxedMoney) bool {
-	return t != nil && t.LessThan(other) || t.Equal(other)
+func (t TaxedMoney) LessThanOrEqual(other TaxedMoney) bool {
+	return t.LessThan(other) || t.Equal(other)
 }
 
 // Mul multiplies current taxed money with given other
 //
 // other must only be either ints or floats or Decimal
-func (m *TaxedMoney) Mul(other float64) TaxedMoney {
-	if m == nil {
-		panic(ErrNillValue)
-	}
+func (t TaxedMoney) Mul(other float64) TaxedMoney {
 	return TaxedMoney{
-		net:   m.net.Mul(other),
-		gross: m.gross.Mul(other),
+		net:   t.net.Mul(other),
+		gross: t.gross.Mul(other),
 	}
 }
 
 // TrueDiv divides current tabled money to other.
 // other must be either Decimal or ints or floats
-func (t *TaxedMoney) TrueDiv(other float64) TaxedMoney {
-	if t == nil {
-		panic(ErrNillValue)
-	}
+func (t TaxedMoney) TrueDiv(other float64) TaxedMoney {
 	return TaxedMoney{
 		gross: t.gross.TrueDiv(other),
 		net:   t.net.TrueDiv(other),
@@ -113,8 +119,8 @@ func (t *TaxedMoney) TrueDiv(other float64) TaxedMoney {
 
 // Add adds a money or taxed money to this.
 // other must be either Money or TaxedMoney
-func (t *TaxedMoney) Add(other any) (*TaxedMoney, error) {
-	if t == nil || other == nil {
+func (t TaxedMoney) Add(other any) (*TaxedMoney, error) {
+	if other == nil {
 		return nil, ErrNillValue
 	}
 
@@ -146,10 +152,7 @@ func (t *TaxedMoney) Add(other any) (*TaxedMoney, error) {
 	}
 }
 
-func (t *TaxedMoney) Neg() TaxedMoney {
-	if t == nil {
-		panic(ErrNillValue)
-	}
+func (t TaxedMoney) Neg() TaxedMoney {
 	return TaxedMoney{
 		net:   t.net.Neg(),
 		gross: t.gross.Neg(),
@@ -158,8 +161,8 @@ func (t *TaxedMoney) Neg() TaxedMoney {
 
 // Add substract this money to other.
 // other must be either Money or TaxedMoney.
-func (t *TaxedMoney) Sub(other any) (*TaxedMoney, error) {
-	if t == nil || other == nil {
+func (t TaxedMoney) Sub(other any) (*TaxedMoney, error) {
+	if other == nil {
 		return nil, ErrNillValue
 	}
 
@@ -175,20 +178,14 @@ func (t *TaxedMoney) Sub(other any) (*TaxedMoney, error) {
 }
 
 // Tax calculates taxed money by subtracting m's gross to m's net
-func (t *TaxedMoney) Tax() *Money {
-	if t == nil {
-		panic(ErrNillValue)
-	}
+func (t TaxedMoney) Tax() *Money {
 	tax, _ := t.gross.Sub(t.net)
 	return tax
 }
 
 // Return a new instance with both net and gross quantized.
 // All arguments are passed to `Money.quantize
-func (t *TaxedMoney) Quantize(round Rounding, exp int) (*TaxedMoney, error) {
-	if t == nil {
-		return nil, ErrNillValue
-	}
+func (t TaxedMoney) Quantize(round Rounding, exp int) (*TaxedMoney, error) {
 	net, err := t.net.Quantize(round, exp)
 	if err != nil {
 		return nil, err
@@ -205,10 +202,7 @@ func (t *TaxedMoney) Quantize(round Rounding, exp int) (*TaxedMoney, error) {
 }
 
 // Apply a fixed discount to TaxedMoney.
-func (t *TaxedMoney) fixedDiscount(discount Money) (*TaxedMoney, error) {
-	if t == nil {
-		return nil, ErrNillValue
-	}
+func (t TaxedMoney) fixedDiscount(discount Money) (*TaxedMoney, error) {
 	baseNet, err := t.net.fixedDiscount(discount)
 	if err != nil {
 		return nil, err
@@ -220,10 +214,7 @@ func (t *TaxedMoney) fixedDiscount(discount Money) (*TaxedMoney, error) {
 	return NewTaxedMoney(*baseNet, *baseGross)
 }
 
-func (m *TaxedMoney) fractionalDiscount(fraction decimal.Decimal, fromGross bool) (*TaxedMoney, error) {
-	if m == nil {
-		return nil, ErrNillValue
-	}
+func (m TaxedMoney) fractionalDiscount(fraction decimal.Decimal, fromGross bool, rounding Rounding) (*TaxedMoney, error) {
 	op := Money{
 		currency: m.GetCurrency(),
 		amount:   m.gross.amount,
@@ -233,7 +224,7 @@ func (m *TaxedMoney) fractionalDiscount(fraction decimal.Decimal, fromGross bool
 	}
 
 	op = op.Mul(fraction.InexactFloat64())
-	discount, err := op.Quantize(Down, -1)
+	discount, err := op.Quantize(rounding, -1)
 	if err != nil {
 		return nil, err
 	}
